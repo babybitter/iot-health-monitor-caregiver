@@ -22,6 +22,7 @@ logs/
 # WeChat DevTools local state
 project.private.config.json
 .wechat_devtools/
+page-images-check/
 
 # Editors and operating systems
 .vscode/
@@ -30,4 +31,3 @@ project.private.config.json
 *.swo
 .DS_Store
 Thumbs.db
-
