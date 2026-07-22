@@ -1,47 +1,54 @@
 <app-nav title="我的" subtitle="账户与职业信息"></app-nav>
 
+<view class="profile-hero"></view>
 <view class="page-shell page-shell--tab profile-page">
-  <state-panel wx:if="{{loading}}" type="loading" title="正在加载个人信息"></state-panel>
-  <state-panel wx:elif="{{error}}" type="error" title="个人信息加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
-
-  <block wx:else>
-    <view class="profile-card card">
-      <view class="profile-card__avatar">{{caregiver.avatarText}}</view>
-      <view class="profile-card__identity">
-        <view class="profile-card__name text-ellipsis">{{caregiver.name}}</view>
-        <view class="profile-card__role text-ellipsis">{{caregiver.role}} · {{caregiver.employeeNo}}</view>
-        <view class="profile-card__org line-clamp-2">{{caregiver.organization}}</view>
-      </view>
-      <status-tag type="success" text="在岗"></status-tag>
-    </view>
-
-    <view class="work-summary card">
-      <view class="work-summary__item">
-        <text class="work-summary__value">{{counts.patients}}</text>
-        <text class="work-summary__label">负责患者</text>
-      </view>
-      <view class="work-summary__item">
-        <text class="work-summary__value">{{counts.completedTasks}}</text>
-        <text class="work-summary__label">今日完成</text>
-      </view>
-      <view class="work-summary__item">
-        <text class="work-summary__value">{{counts.pendingTraining}}</text>
-        <text class="work-summary__label">培训待办</text>
-      </view>
-    </view>
-
-    <view wx:for="{{menuGroups}}" wx:for-item="group" wx:key="id" class="menu-group card">
-      <button wx:for="{{group.items}}" wx:key="key" class="menu-row" data-key="{{item.key}}" bindtap="openMenu">
-        <view class="menu-row__mark">{{item.mark}}</view>
-        <view class="menu-row__content">
-          <view class="menu-row__title text-ellipsis">{{item.title}}</view>
-          <view class="menu-row__desc text-ellipsis">{{item.desc}}</view>
-        </view>
-        <view wx:if="{{item.badge}}" class="menu-row__badge">{{item.badge}}</view>
-        <view class="menu-row__chevron"></view>
+  <view class="profile-box card">
+    <view class="profile-head">
+      <button open-type="chooseAvatar" class="avatar-button" bindchooseavatar="chooseAvatar">
+        <image class="avatar-image" src="{{login.avatar}}" mode="aspectFill"></image>
       </button>
+      <view wx:if="{{!login.show}}" class="login-tip">点击头像登录并更新个人头像</view>
+      <view wx:else class="caregiver-info">
+        <view class="caregiver-name text-ellipsis">{{caregiver.name}}</view>
+        <view class="caregiver-meta">
+          <text class="text-ellipsis">工号：{{caregiver.employeeNo}}</text>
+          <text class="text-ellipsis">上次登录：{{lastLoginTime}}</text>
+        </view>
+      </view>
     </view>
 
-    <view class="profile-notice">个人信息仅用于当前机构的排班与照护工作展示。</view>
-  </block>
+    <button class="menu-row" data-key="profile" bindtap="openMenu">
+      <view class="menu-row__left"><image class="menu-icon" src="/images/patient-info.png" mode="aspectFit"></image><view class="menu-row__content"><view class="menu-row__title text-ellipsis">护工基本信息</view><view class="menu-row__desc text-ellipsis">查看工号、岗位和所属机构</view></view></view>
+      <view class="menu-chevron"></view>
+    </button>
+    <button class="menu-row" data-key="attendance" bindtap="openMenu">
+      <view class="menu-row__left"><image class="menu-icon" src="/images/schedule.png" mode="aspectFit"></image><view class="menu-row__content"><view class="menu-row__title text-ellipsis">考勤记录</view><view class="menu-row__desc text-ellipsis">查看当前班次签到与签退</view></view></view>
+      <view class="menu-chevron"></view>
+    </button>
+    <button class="menu-row menu-row--last" data-key="records" bindtap="openMenu">
+      <view class="menu-row__left"><image class="menu-icon" src="/images/note.png" mode="aspectFit"></image><view class="menu-row__content"><view class="menu-row__title text-ellipsis">照护记录</view><view class="menu-row__desc text-ellipsis">查看或新增工作记录</view></view></view>
+      <view class="menu-chevron"></view>
+    </button>
+  </view>
+
+  <view class="menu-group card">
+    <button class="menu-row" data-key="certificates" bindtap="openMenu">
+      <view class="menu-row__left"><image class="menu-icon" src="/images/history.png" mode="aspectFit"></image><view class="menu-row__content"><view class="menu-row__title text-ellipsis">资质证书</view><view class="menu-row__desc text-ellipsis">查看证书编号和有效期</view></view></view>
+      <view class="menu-chevron"></view>
+    </button>
+    <button class="menu-row menu-row--last" data-key="training" bindtap="openMenu">
+      <view class="menu-row__left"><image class="menu-icon" src="/images/chart.png" mode="aspectFit"></image><view class="menu-row__content"><view class="menu-row__title text-ellipsis">培训与考核</view><view class="menu-row__desc text-ellipsis">查看待参加项目和历史结果</view></view></view>
+      <view class="menu-chevron"></view>
+    </button>
+  </view>
+
+  <view class="menu-group card">
+    <button wx:if="{{login.show}}" class="menu-row menu-row--last" bindtap="logout">
+      <view class="menu-row__left"><image class="menu-icon" src="/images/logout.png" mode="aspectFit"></image><view class="menu-row__content"><view class="menu-row__title">退出登录</view></view></view>
+    </button>
+    <button wx:else open-type="chooseAvatar" class="menu-row menu-row--last" bindchooseavatar="chooseAvatar">
+      <view class="menu-row__left"><image class="menu-icon" src="/images/login.png" mode="aspectFit"></image><view class="menu-row__content"><view class="menu-row__title">立即登录</view></view></view>
+    </button>
+  </view>
+  <view class="profile-notice">个人信息仅用于当前机构的排班与照护工作展示。</view>
 </view>
