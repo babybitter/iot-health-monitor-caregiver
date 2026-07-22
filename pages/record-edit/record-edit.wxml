@@ -1,0 +1,43 @@
+<app-nav title="新增照护记录" back="{{true}}"></app-nav>
+
+<view class="page-shell form-page">
+  <state-panel wx:if="{{loading}}" type="loading" title="正在加载表单"></state-panel>
+  <state-panel wx:elif="{{error}}" type="error" title="表单加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
+  <state-panel wx:elif="{{!patients.length}}" type="empty" title="暂无服务对象" description="当前班次没有可填写记录的服务对象"></state-panel>
+
+  <view wx:else class="record-form card">
+    <view class="form-field">
+      <view class="form-label"><text>服务对象</text><text class="form-required">必填</text></view>
+      <picker mode="selector" range="{{patientNames}}" value="{{selectedPatientIndex}}" bindchange="onPatientChange">
+        <view class="form-picker">{{patientNames[selectedPatientIndex]}}<view class="form-chevron"></view></view>
+      </picker>
+    </view>
+
+    <view class="form-field">
+      <view class="form-label"><text>记录类型</text><text class="form-required">必填</text></view>
+      <picker mode="selector" range="{{types}}" value="{{selectedTypeIndex}}" bindchange="onTypeChange">
+        <view class="form-picker">{{types[selectedTypeIndex]}}<view class="form-chevron"></view></view>
+      </picker>
+    </view>
+
+    <view class="form-field">
+      <view class="form-label"><text>照护事项</text><text class="form-required">必填</text></view>
+      <textarea class="form-textarea form-textarea--large" value="{{content}}" maxlength="300" auto-height="{{false}}" placeholder="简要记录观察到的情况和已执行事项" placeholder-class="form-placeholder" bindinput="onContentInput"></textarea>
+      <view class="form-count">{{contentCount}} / 300</view>
+    </view>
+
+    <view class="form-field">
+      <view class="form-label"><text>处理结果</text><text class="form-required">必填</text></view>
+      <textarea class="form-textarea" value="{{result}}" maxlength="120" auto-height="{{false}}" placeholder="填写处理后的结果或后续安排" placeholder-class="form-placeholder" bindinput="onResultInput"></textarea>
+      <view class="form-count">{{resultCount}} / 120</view>
+    </view>
+
+    <view wx:if="{{formError}}" class="form-error">{{formError}}</view>
+  </view>
+
+  <view wx:if="{{!loading && !error && patients.length}}" class="form-actions">
+    <button class="secondary-button" disabled="{{submitting}}" bindtap="cancel">取消</button>
+    <button class="primary-button" disabled="{{submitting}}" bindtap="submit">{{submitting ? '保存中' : '保存记录'}}</button>
+  </view>
+</view>
+

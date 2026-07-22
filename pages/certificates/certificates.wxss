@@ -1,0 +1,12 @@
+.certificate-page { padding-top: 20rpx; }
+.certificate-notice { padding: 20rpx 22rpx; border: 1rpx solid #cbdcf1; border-radius: 16rpx; background: #edf4fd; color: #4c6582; font-size: 22rpx; line-height: 1.55; word-break: break-word; }
+.certificate-list { display: flex; width: 100%; min-width: 0; gap: 16rpx; margin-top: 18rpx; flex-direction: column; }
+.certificate-card { padding: 28rpx; }
+.certificate-card--expiring { border-color: #efcf9e; }
+.certificate-card__top { display: flex; min-width: 0; align-items: flex-start; justify-content: space-between; gap: 18rpx; margin-bottom: 18rpx; }
+.certificate-card__name { min-width: 0; flex: 1; color: #182230; font-size: 28rpx; font-weight: 650; line-height: 1.45; word-break: break-word; }
+.certificate-row { display: flex; width: 100%; min-width: 0; gap: 18rpx; padding: 13rpx 0; font-size: 23rpx; line-height: 1.5; }
+.certificate-row text:first-child { width: 120rpx; flex: 0 0 120rpx; color: #8a96a8; }
+.certificate-row text:last-child { min-width: 0; flex: 1; color: #344054; text-align: right; word-break: break-all; }
+.certificate-warning { margin-top: 18rpx; padding: 16rpx 18rpx; border-radius: 12rpx; background: #fff4df; color: #8b560b; font-size: 21rpx; line-height: 1.5; }
+

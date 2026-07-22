@@ -1,0 +1,47 @@
+<app-nav title="我的" subtitle="账户与职业信息"></app-nav>
+
+<view class="page-shell page-shell--tab profile-page">
+  <state-panel wx:if="{{loading}}" type="loading" title="正在加载个人信息"></state-panel>
+  <state-panel wx:elif="{{error}}" type="error" title="个人信息加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
+
+  <block wx:else>
+    <view class="profile-card card">
+      <view class="profile-card__avatar">{{caregiver.avatarText}}</view>
+      <view class="profile-card__identity">
+        <view class="profile-card__name text-ellipsis">{{caregiver.name}}</view>
+        <view class="profile-card__role text-ellipsis">{{caregiver.role}} · {{caregiver.employeeNo}}</view>
+        <view class="profile-card__org line-clamp-2">{{caregiver.organization}}</view>
+      </view>
+      <status-tag type="success" text="在岗"></status-tag>
+    </view>
+
+    <view class="work-summary card">
+      <view class="work-summary__item">
+        <text class="work-summary__value">{{counts.patients}}</text>
+        <text class="work-summary__label">负责患者</text>
+      </view>
+      <view class="work-summary__item">
+        <text class="work-summary__value">{{counts.completedTasks}}</text>
+        <text class="work-summary__label">今日完成</text>
+      </view>
+      <view class="work-summary__item">
+        <text class="work-summary__value">{{counts.pendingTraining}}</text>
+        <text class="work-summary__label">培训待办</text>
+      </view>
+    </view>
+
+    <view wx:for="{{menuGroups}}" wx:for-item="group" wx:key="id" class="menu-group card">
+      <button wx:for="{{group.items}}" wx:key="key" class="menu-row" data-key="{{item.key}}" bindtap="openMenu">
+        <view class="menu-row__mark">{{item.mark}}</view>
+        <view class="menu-row__content">
+          <view class="menu-row__title text-ellipsis">{{item.title}}</view>
+          <view class="menu-row__desc text-ellipsis">{{item.desc}}</view>
+        </view>
+        <view wx:if="{{item.badge}}" class="menu-row__badge">{{item.badge}}</view>
+        <view class="menu-row__chevron"></view>
+      </button>
+    </view>
+
+    <view class="profile-notice">个人信息仅用于当前机构的排班与照护工作展示。</view>
+  </block>
+</view>

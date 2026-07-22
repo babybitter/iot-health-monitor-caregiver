@@ -1,0 +1,21 @@
+<app-nav title="资质证书" subtitle="仅展示证书摘要" back="{{true}}"></app-nav>
+
+<view class="page-shell certificate-page">
+  <view class="certificate-notice">证书信息用于在岗资格提醒；当前版本暂不提供上传与变更。</view>
+  <state-panel wx:if="{{loading}}" type="loading" title="正在加载证书信息"></state-panel>
+  <state-panel wx:elif="{{error}}" type="error" title="证书信息加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
+  <state-panel wx:elif="{{!certificates.length}}" type="empty" title="暂无证书信息"></state-panel>
+
+  <view wx:else class="certificate-list">
+    <view wx:for="{{certificates}}" wx:key="id" class="certificate-card card certificate-card--{{item.status}}">
+      <view class="certificate-card__top">
+        <view class="certificate-card__name">{{item.name}}</view>
+        <status-tag type="{{item.status}}" text="{{item.statusText}}"></status-tag>
+      </view>
+      <view class="certificate-row"><text>证书编号</text><text>{{item.number}}</text></view>
+      <view class="certificate-row"><text>有效期</text><text>{{item.validFrom}} 至 {{item.validTo}}</text></view>
+      <view wx:if="{{item.status === 'expiring'}}" class="certificate-warning">请在有效期届满前联系管理人员办理复训或更新。</view>
+    </view>
+  </view>
+</view>
+

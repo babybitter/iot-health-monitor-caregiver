@@ -1,0 +1,40 @@
+.records-page { padding-top: 20rpx; }
+
+.records-toolbar { display: flex; width: 100%; min-width: 0; align-items: stretch; gap: 14rpx; }
+.records-picker { min-width: 0; flex: 1; }
+
+.records-picker__value {
+  display: flex;
+  width: 100%;
+  height: 80rpx;
+  align-items: center;
+  padding: 0 22rpx;
+  border: 1rpx solid #d9e2ee;
+  border-radius: 16rpx;
+  background: #ffffff;
+  color: #273444;
+  font-size: 24rpx;
+}
+
+.records-add { min-height: 80rpx; flex: 0 0 auto; padding: 16rpx 24rpx; font-size: 24rpx; }
+.records-total { margin: 22rpx 4rpx 14rpx; color: #7c8799; font-size: 22rpx; }
+.record-list { display: flex; width: 100%; min-width: 0; gap: 16rpx; flex-direction: column; }
+.record-card { padding: 26rpx; }
+.record-card__top { display: flex; min-width: 0; align-items: flex-start; justify-content: space-between; gap: 16rpx; }
+.record-card__identity { min-width: 0; flex: 1; }
+.record-card__name { color: #273444; font-size: 27rpx; font-weight: 650; }
+.record-card__time { margin-top: 7rpx; color: #8a96a8; font-size: 21rpx; }
+.record-card__content { margin-top: 20rpx; color: #344054; font-size: 24rpx; line-height: 1.65; word-break: break-word; }
+.record-card__result { display: flex; min-width: 0; gap: 18rpx; margin-top: 18rpx; padding: 17rpx 19rpx; border-radius: 14rpx; background: #f5f8fc; font-size: 22rpx; line-height: 1.5; }
+.record-card__result text:first-child { flex: 0 0 auto; color: #7c8799; }
+.record-card__result text:last-child { min-width: 0; flex: 1; color: #273444; text-align: right; word-break: break-word; }
+.record-card__author { margin-top: 16rpx; color: #9aa5b4; font-size: 20rpx; text-align: right; }
+.load-more { min-height: 76rpx; border: 1rpx solid #c9d9ed; border-radius: 16rpx; background: #edf4fd; color: #0d4fae; font-size: 24rpx; font-weight: 600; }
+.list-end { padding: 20rpx; color: #9aa5b4; font-size: 21rpx; text-align: center; }
+
+@media (max-width: 360px) {
+  .records-toolbar { flex-wrap: wrap; }
+  .records-picker { flex-basis: 100%; }
+  .records-add { width: 100%; }
+}
+

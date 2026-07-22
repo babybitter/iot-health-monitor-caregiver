@@ -1,0 +1,26 @@
+<app-nav title="培训与考核" subtitle="安排与历史结果" back="{{true}}"></app-nav>
+
+<view class="page-shell training-page">
+  <view class="training-tabs">
+    <button class="training-tab {{activeStatus === 'pending' ? 'training-tab--active' : ''}}" data-status="pending" bindtap="selectStatus">待完成</button>
+    <button class="training-tab {{activeStatus === 'completed' ? 'training-tab--active' : ''}}" data-status="completed" bindtap="selectStatus">历史结果</button>
+  </view>
+
+  <state-panel wx:if="{{loading}}" type="loading" title="正在加载培训信息"></state-panel>
+  <state-panel wx:elif="{{error}}" type="error" title="培训信息加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
+  <state-panel wx:elif="{{!items.length}}" type="empty" title="当前分组暂无内容"></state-panel>
+
+  <view wx:else class="training-list">
+    <view wx:for="{{items}}" wx:key="id" class="training-card card">
+      <view class="training-card__top">
+        <view class="training-card__type">{{item.type}}</view>
+        <status-tag type="{{item.status}}" text="{{item.status === 'pending' ? '待完成' : '已完成'}}"></status-tag>
+      </view>
+      <view class="training-card__title">{{item.title}}</view>
+      <view wx:if="{{item.status === 'pending'}}" class="training-card__meta">完成期限 {{item.deadline}} · {{item.duration}}</view>
+      <view wx:else class="training-card__meta">完成时间 {{item.completedAt}} · 结果 {{item.score}}</view>
+      <button wx:if="{{item.status === 'pending'}}" class="secondary-button training-card__action" data-id="{{item.id}}" bindtap="showSchedule">查看安排</button>
+    </view>
+  </view>
+</view>
+

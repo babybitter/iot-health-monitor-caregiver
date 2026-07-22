@@ -3,9 +3,14 @@
     "pages/workbench/workbench",
     "pages/monitor/monitor",
     "pages/tasks/tasks",
+    "pages/profile/profile",
     "pages/patients/patients",
     "pages/task-detail/task-detail",
-    "pages/attendance/attendance"
+    "pages/records/records",
+    "pages/record-edit/record-edit",
+    "pages/attendance/attendance",
+    "pages/certificates/certificates",
+    "pages/training/training"
   ],
   "window": {
     "navigationStyle": "custom",
@@ -33,6 +38,10 @@
       {
         "pagePath": "pages/tasks/tasks",
         "text": "任务"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
       }
     ]
   },
