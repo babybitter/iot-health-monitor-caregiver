@@ -13,6 +13,32 @@ const { evaluateMetric, formatMetric } = require("../utils/health");
 const workStore = require("../store/work-store");
 const repository = require("../services/repository");
 
+const testNavigation = () => {
+  let componentDefinition;
+  let navigateBackCalls = 0;
+  let switchedUrl = "";
+  global.Component = definition => { componentDefinition = definition; };
+  global.getCurrentPages = () => [{ route: "pages/tasks/tasks" }, { route: "pages/task-detail/task-detail" }];
+  wx.navigateBack = options => {
+    navigateBackCalls += 1;
+    options.complete();
+  };
+  wx.switchTab = options => {
+    switchedUrl = options.url;
+    options.complete();
+  };
+  require("../components/app-nav/app-nav.js");
+
+  const component = {};
+  componentDefinition.methods.goBack.call(component);
+  assert.strictEqual(navigateBackCalls, 1);
+  assert.strictEqual(component._isNavigatingBack, false);
+
+  global.getCurrentPages = () => [{ route: "pages/task-detail/task-detail" }];
+  componentDefinition.methods.goBack.call(component);
+  assert.strictEqual(switchedUrl, "/pages/workbench/workbench");
+};
+
 const message = (topic, payload, offset) => workStore.handleRealtimeEvent({
   type: "message",
   topic,
@@ -21,6 +47,7 @@ const message = (topic, payload, offset) => workStore.handleRealtimeEvent({
 });
 
 const run = async () => {
+  testNavigation();
   assert.strictEqual(evaluateMetric("heartRate", 80), "normal");
   assert.strictEqual(evaluateMetric("heartRate", 110), "warning");
   assert.strictEqual(evaluateMetric("bloodOxygen", 89), "danger");

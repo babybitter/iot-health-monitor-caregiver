@@ -42,13 +42,28 @@ Component({
 
   methods: {
     goBack() {
+      if (this._isNavigatingBack) return;
+      this._isNavigatingBack = true;
+
+      const release = () => {
+        this._isNavigatingBack = false;
+      };
+      const returnToWorkbench = () => {
+        wx.switchTab({
+          url: "/pages/workbench/workbench",
+          complete: release
+        });
+      };
       const pages = getCurrentPages();
       if (pages.length > 1) {
-        wx.navigateBack();
+        wx.navigateBack({
+          delta: 1,
+          fail: returnToWorkbench,
+          complete: release
+        });
       } else {
-        wx.switchTab({ url: "/pages/workbench/workbench" });
+        returnToWorkbench();
       }
     }
   }
 });
-
