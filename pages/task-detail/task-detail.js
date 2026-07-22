@@ -72,9 +72,6 @@ Page({
 
   openPatientMonitor() {
     if (!this.data.task || !this.data.task.patientId) return;
-    repository.selectPatient(this.data.task.patientId);
-    const workStore = require("../../store/work-store");
-    workStore.setState({ selectedPatientId: this.data.task.patientId });
     wx.switchTab({ url: "/pages/monitor/monitor" });
   },
 
@@ -83,4 +80,3 @@ Page({
     wx.navigateTo({ url: `/pages/record-edit/record-edit?patientId=${this.data.task.patientId}&type=${encodeURIComponent(this.data.task.category)}` });
   }
 });
-

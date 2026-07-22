@@ -1,9 +1,9 @@
-<app-nav title="工作台" subtitle="{{shift.area || '今日值守'}}"></app-nav>
+<app-nav title="工作台" subtitle="单设备实时值守"></app-nav>
 
-<view wx:if="{{!networkOnline}}" class="network-banner">当前网络不可用，模拟数据和本地记录仍可查看</view>
+<view wx:if="{{!networkOnline}}" class="network-banner">当前网络不可用，实时监护数据暂时无法接收</view>
 
 <view class="page-shell page-shell--tab">
-  <state-panel wx:if="{{loading}}" type="loading" title="正在加载工作安排" description="请稍候"></state-panel>
+  <state-panel wx:if="{{loading}}" type="loading" title="正在加载工作状态" description="请稍候"></state-panel>
   <state-panel wx:elif="{{error}}" type="error" title="工作台加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
 
   <block wx:else>
@@ -11,15 +11,14 @@
       <view class="duty-card__top">
         <view class="duty-card__identity">
           <view class="duty-card__greeting">{{greeting}}，{{caregiver.name}}</view>
-          <view class="duty-card__shift line-clamp-2">{{shift.name}} {{shift.startTime}}-{{shift.endTime}} · {{shift.area}}</view>
+          <view class="duty-card__shift line-clamp-2">{{shift.name}} · {{shift.area}}</view>
         </view>
         <status-tag type="{{attendance.status === 'checked_in' ? 'success' : attendance.status === 'checked_out' ? 'neutral' : 'warning'}}" text="{{attendance.status === 'checked_in' ? '值班中' : attendance.status === 'checked_out' ? '已签退' : '待签到'}}"></status-tag>
       </view>
-
       <view class="duty-card__actions">
         <button class="attendance-button" disabled="{{clocking || attendance.status === 'checked_out'}}" bindtap="handleAttendance">
           <text>{{clocking ? '处理中' : attendance.status === 'checked_in' ? '签退' : attendance.status === 'checked_out' ? '本班次已结束' : '签到'}}</text>
-          <text class="attendance-button__meta">{{attendance.checkInTime ? '签到 ' + attendance.checkInTime : '不采集定位信息'}}</text>
+          <text class="attendance-button__meta">{{attendance.checkInTime ? '签到 ' + attendance.checkInTime : '定位校验尚未接入'}}</text>
         </button>
         <button class="attendance-history" bindtap="openAttendance">考勤记录</button>
       </view>
@@ -28,11 +27,11 @@
     <view class="summary-grid">
       <button class="summary-card summary-card--danger" bindtap="openMonitor">
         <text class="summary-card__value">{{counts.alerts || 0}}</text>
-        <text class="summary-card__label">待处理异常</text>
+        <text class="summary-card__label">当前异常</text>
       </button>
-      <button class="summary-card" bindtap="openPatients">
-        <text class="summary-card__value">{{counts.patients || 0}}</text>
-        <text class="summary-card__label">负责患者</text>
+      <button class="summary-card" bindtap="openMonitor">
+        <text class="summary-card__value summary-card__value--text">{{realtimeConnected ? '在线' : '离线'}}</text>
+        <text class="summary-card__label">MQTT 通道</text>
       </button>
       <button class="summary-card" bindtap="openTasks">
         <text class="summary-card__value">{{counts.pendingTasks || 0}}</text>
@@ -45,46 +44,46 @@
       <button class="section-action" bindtap="openMonitor">进入监控</button>
     </view>
     <view wx:if="{{alerts.length}}" class="alert-list card">
-      <button wx:for="{{alerts}}" wx:key="id" class="alert-row" data-patient-id="{{item.patientId}}" bindtap="openMonitor">
+      <button wx:for="{{alerts}}" wx:key="id" class="alert-row" bindtap="openMonitor">
         <view class="alert-row__rail alert-row__rail--{{item.level}}"></view>
         <view class="alert-row__content">
           <view class="alert-row__headline">
             <text class="alert-row__title text-ellipsis">{{item.title}}</text>
             <status-tag type="{{item.level}}" text="{{item.levelText}}" dot="{{false}}"></status-tag>
           </view>
-          <view class="alert-row__meta">{{item.patientName}} · {{item.timeLabel}}</view>
+          <view class="alert-row__meta">{{item.timeLabel}}</view>
           <view class="alert-row__description line-clamp-2">{{item.description}}</view>
         </view>
         <view class="row-chevron"></view>
       </button>
     </view>
-    <state-panel wx:else type="empty" compact="{{true}}" title="暂无待处理异常" description="当前负责患者没有未处理告警"></state-panel>
+    <state-panel wx:else type="empty" compact="{{true}}" title="暂无实时异常" description="收到 MQTT 数据后会按阈值自动判断"></state-panel>
 
     <view class="section-heading">
-      <view class="section-title">负责患者</view>
-      <button class="section-action" bindtap="openPatients">查看全部</button>
+      <view class="section-title">当前照护对象</view>
+      <view class="section-caption">一套设备</view>
     </view>
-    <scroll-view wx:if="{{priorityPatients.length}}" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}" class="patient-strip">
-      <view class="patient-strip__inner">
-        <button wx:for="{{priorityPatients}}" wx:key="id" class="patient-card" data-patient-id="{{item.id}}" bindtap="openMonitor">
-          <view class="patient-card__top">
-            <view class="patient-card__name text-ellipsis">{{item.displayName}}</view>
-            <status-tag type="{{item.status}}" text="{{item.status === 'danger' ? '异常' : item.status === 'warning' ? '关注' : '平稳'}}"></status-tag>
-          </view>
-          <view class="patient-card__bed text-ellipsis">{{item.room}} · {{item.bed}}</view>
-          <view class="patient-card__note line-clamp-2">{{item.note}}</view>
-          <view class="patient-card__update text-ellipsis">{{item.updateLabel}}</view>
-        </button>
+    <button class="subject-card card" bindtap="openMonitor">
+      <view class="subject-card__main">
+        <view class="subject-card__mark">护</view>
+        <view class="subject-card__identity">
+          <view class="subject-card__name text-ellipsis">{{subject.displayName}}</view>
+          <view class="subject-card__meta text-ellipsis">{{subject.location}} · {{subject.careLevel}}</view>
+        </view>
+        <status-tag type="{{subjectStatusType}}" text="{{subjectStatus}}"></status-tag>
       </view>
-    </scroll-view>
+      <view class="subject-card__updated text-ellipsis">最近数据：{{lastUpdateLabel}}</view>
+    </button>
 
-    <button wx:if="{{latestPatient && latestVitals}}" class="latest-monitor card" data-patient-id="{{latestPatient.id}}" bindtap="openMonitor">
+    <button class="latest-monitor card" bindtap="openMonitor">
       <view class="latest-monitor__identity">
-        <view class="latest-monitor__label">最近监测 · {{latestPatient.displayName}}</view>
-        <view class="latest-monitor__status">{{latestVitals.deviceStatus}}</view>
+        <view class="latest-monitor__label">实时监测</view>
+        <view class="latest-monitor__status">{{realtimeConnected ? 'MQTT 已连接' : (connectionError || '等待 MQTT 连接')}}</view>
       </view>
-      <view class="latest-monitor__metric"><text>{{latestVitals.heartRate}}</text><text>心率</text></view>
-      <view class="latest-monitor__metric"><text>{{latestVitals.bloodOxygen}}%</text><text>血氧</text></view>
+      <view wx:for="{{latestMetrics}}" wx:key="type" class="latest-monitor__metric">
+        <text>{{item.value}}{{item.value === '--' ? '' : item.unit}}</text>
+        <text>{{item.label}}</text>
+      </view>
       <view class="row-chevron"></view>
     </button>
 
@@ -97,11 +96,11 @@
         <view class="task-row__time">{{item.scheduledTime}}</view>
         <view class="task-row__body">
           <view class="task-row__title text-ellipsis">{{item.title}}</view>
-          <view class="task-row__meta text-ellipsis">{{item.patientName}} · {{item.location}}</view>
+          <view class="task-row__meta text-ellipsis">{{item.location || '位置待同步'}}</view>
         </view>
         <status-tag type="{{item.status}}" text="{{item.statusText}}" dot="{{false}}"></status-tag>
       </button>
     </view>
-    <state-panel wx:else type="empty" compact="{{true}}" title="今日任务已完成" description="暂无待处理任务"></state-panel>
+    <state-panel wx:else type="empty" compact="{{true}}" title="暂无已同步任务" description="接入护工业务接口后将在此显示任务"></state-panel>
   </block>
 </view>

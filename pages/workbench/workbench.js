@@ -1,33 +1,34 @@
 const repository = require("../../services/repository");
 const workStore = require("../../store/work-store");
-const { formatTime, minutesSince } = require("../../utils/date");
-
-const patientMap = patients => (patients || []).reduce((result, item) => {
-  result[item.id] = item;
-  return result;
-}, {});
+const config = require("../../config/index.js");
+const { formatDateTime } = require("../../utils/date");
+const { formatMetric } = require("../../utils/health");
 
 Page({
   data: {
     loading: true,
     error: "",
     networkOnline: true,
+    realtimeConnected: false,
+    connectionError: "",
     clocking: false,
-    greeting: "上午好",
+    greeting: "您好",
     caregiver: {},
     shift: {},
     attendance: {},
-    counts: {},
-    priorityPatients: [],
+    counts: { alerts: 0, pendingTasks: 0 },
     alerts: [],
     tasks: [],
-    latestPatient: null,
-    latestVitals: null
+    subject: config.careSubject,
+    subjectStatus: "等待数据",
+    subjectStatusType: "offline",
+    lastUpdateLabel: "--",
+    latestMetrics: []
   },
 
   onLoad() {
-    this.unsubscribe = workStore.subscribe(state => this.setData({ networkOnline: state.networkOnline }));
-    this.setData({ networkOnline: workStore.getState().networkOnline, greeting: this.getGreeting() });
+    this.unsubscribe = workStore.subscribe(state => this.applyLiveState(state));
+    this.setData({ greeting: this.getGreeting() });
     this.loadDashboard();
   },
 
@@ -40,7 +41,9 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.loadDashboard(true).finally(() => wx.stopPullDownRefresh());
+    const app = getApp();
+    const reconnect = app && app.connectRealtime ? app.connectRealtime() : Promise.resolve(false);
+    return Promise.all([this.loadDashboard(true), reconnect]).finally(() => wx.stopPullDownRefresh());
   },
 
   getGreeting() {
@@ -55,19 +58,8 @@ Page({
     if (!silent) this.setData({ loading: true, error: "" });
     try {
       const dashboard = await repository.getDashboard();
-      const patientsById = patientMap(dashboard.patients);
-      const priorityPatients = dashboard.patients.slice(0, 3).map(item => Object.assign({}, item, {
-        updateLabel: minutesSince(item.lastUpdate) < 1 ? "刚刚更新" : `${minutesSince(item.lastUpdate)}分钟前更新`
-      }));
-      const alerts = dashboard.alerts.map(item => Object.assign({}, item, {
-        patientName: patientsById[item.patientId] ? patientsById[item.patientId].displayName : "服务对象",
-        timeLabel: formatTime(item.occurredAt),
-        levelText: item.level === "danger" ? "紧急" : "关注"
-      }));
       const tasks = dashboard.tasks.map(item => Object.assign({}, item, {
-        patientName: patientsById[item.patientId] ? patientsById[item.patientId].displayName : "服务对象",
-        statusText: item.status === "processing" ? "进行中" : "待完成",
-        priorityText: item.priority === "urgent" ? "优先" : item.priority === "high" ? "较高" : "常规"
+        statusText: item.status === "processing" ? "进行中" : "待完成"
       }));
       this.setData({
         loading: false,
@@ -75,20 +67,40 @@ Page({
         caregiver: dashboard.caregiver,
         shift: dashboard.shift,
         attendance: dashboard.attendance,
-        counts: dashboard.counts,
-        priorityPatients,
-        alerts,
         tasks,
-        latestPatient: priorityPatients[0] || null,
-        latestVitals: priorityPatients[0] ? {
-          heartRate: priorityPatients[0].vitals.heartRate,
-          bloodOxygen: priorityPatients[0].vitals.bloodOxygen,
-          deviceStatus: (priorityPatients[0].devices || []).some(item => item.status === "online") ? "设备在线" : "设备离线"
-        } : null
+        counts: dashboard.counts
       });
+      this.applyLiveState(workStore.getState());
     } catch (error) {
       this.setData({ loading: false, error: error.message || "工作台加载失败" });
     }
+  },
+
+  applyLiveState(state) {
+    const monitor = state.monitor;
+    const metrics = monitor.metrics;
+    const alerts = monitor.alerts.map(item => Object.assign({}, item, {
+      timeLabel: formatDateTime(item.occurredAt),
+      levelText: item.level === "danger" ? "紧急" : "关注"
+    }));
+    const latestMetrics = ["heartRate", "bloodOxygen", "bodyTemperature"].map(type => formatMetric(type, metrics[type].value));
+    let subjectStatus = "等待数据";
+    let subjectStatusType = "offline";
+    if (monitor.lastUpdate) {
+      subjectStatusType = alerts.some(item => item.level === "danger") ? "danger" : alerts.length ? "warning" : "normal";
+      subjectStatus = subjectStatusType === "danger" ? "存在异常" : subjectStatusType === "warning" ? "需要关注" : "数据平稳";
+    }
+    this.setData({
+      networkOnline: state.networkOnline,
+      realtimeConnected: state.realtimeConnected,
+      connectionError: state.connectionError,
+      alerts,
+      subjectStatus,
+      subjectStatusType,
+      lastUpdateLabel: formatDateTime(monitor.lastUpdate),
+      latestMetrics,
+      counts: Object.assign({}, this.data.counts, { alerts: alerts.length })
+    });
   },
 
   retryLoad() {
@@ -101,7 +113,7 @@ Page({
     if (action === "check_out") {
       wx.showModal({
         title: "确认签退",
-        content: "请确认当班任务和交接事项已经处理。签退后本班次状态将结束。",
+        content: "请确认本班次任务和交接事项已经处理。签退后本班次状态将结束。",
         confirmText: "确认签退",
         confirmColor: "#c43a47",
         success: result => {
@@ -126,10 +138,6 @@ Page({
     }
   },
 
-  openPatients() {
-    wx.navigateTo({ url: "/pages/patients/patients" });
-  },
-
   openTasks() {
     wx.switchTab({ url: "/pages/tasks/tasks" });
   },
@@ -138,12 +146,7 @@ Page({
     wx.navigateTo({ url: `/pages/task-detail/task-detail?id=${event.currentTarget.dataset.id}` });
   },
 
-  openMonitor(event) {
-    const patientId = event.currentTarget.dataset.patientId;
-    if (patientId) {
-      repository.selectPatient(patientId);
-      workStore.setState({ selectedPatientId: patientId });
-    }
+  openMonitor() {
     wx.switchTab({ url: "/pages/monitor/monitor" });
   },
 

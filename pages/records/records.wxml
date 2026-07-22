@@ -2,9 +2,7 @@
 
 <view class="page-shell records-page">
   <view class="records-toolbar">
-    <picker class="records-picker" mode="selector" range="{{patientNames}}" value="{{selectedIndex}}" bindchange="onPatientChange">
-      <view class="records-picker__value text-ellipsis">{{patientNames[selectedIndex]}}</view>
-    </picker>
+    <view class="records-picker"><view class="records-picker__value text-ellipsis">当前照护对象</view></view>
     <button class="primary-button records-add" bindtap="addRecord">新增记录</button>
   </view>
   <view class="records-total">共 {{total}} 条记录</view>
@@ -31,4 +29,3 @@
     <view wx:else class="list-end">已显示全部匹配记录</view>
   </view>
 </view>
-

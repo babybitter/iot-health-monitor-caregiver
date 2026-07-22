@@ -24,7 +24,7 @@ Page({
   },
 
   onShow() {
-    if (!this.data.loading && this.data.tasks.length) this.loadTasks(true, true);
+    if (!this.data.loading) this.loadTasks(true, true);
   },
 
   onPullDownRefresh() {
@@ -80,4 +80,3 @@ Page({
     wx.navigateTo({ url: `/pages/task-detail/task-detail?id=${event.currentTarget.dataset.id}` });
   }
 });
-

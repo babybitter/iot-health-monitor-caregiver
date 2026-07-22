@@ -1,289 +1,241 @@
 const config = require("../config/index.js");
-const mock = require("../mocks/data");
-const request = require("./request");
+const workStore = require("../store/work-store");
 const storage = require("../utils/storage");
-const { evaluateMetric, severityRank } = require("../utils/health");
 
 const KEYS = {
-  selectedPatient: "caregiver_selected_patient",
+  caregiver: "caregiver_profile",
   attendance: "caregiver_attendance",
   tasks: "caregiver_tasks",
-  alerts: "caregiver_alerts",
-  records: "caregiver_records",
-  deviceControls: "caregiver_device_controls"
+  records: "caregiver_records"
 };
 
 const clone = value => JSON.parse(JSON.stringify(value));
-const delay = (value, duration) => new Promise(resolve => setTimeout(() => resolve(clone(value)), duration || 180));
-const getPersisted = (key, fallback) => storage.read(key, clone(fallback));
+const resolved = value => Promise.resolve(clone(value));
+const today = () => new Date().toISOString().slice(0, 10);
+const currentTime = () => new Date().toTimeString().slice(0, 5);
 
-const patientById = patientId => mock.patients.find(item => item.id === patientId) || mock.patients[0];
-
-const firstDefined = (data, fields) => {
-  if (!data) return undefined;
-  const field = fields.find(name => data[name] !== undefined && data[name] !== null);
-  return field ? data[field] : undefined;
+const defaultCaregiver = {
+  name: "护工用户",
+  role: "照护人员",
+  employeeNo: "未绑定",
+  organization: "机构信息待配置",
+  avatar: "/images/default-avatar.png",
+  shift: { name: "当前班次", startTime: "--:--", endTime: "--:--", area: "值守区域待配置" }
 };
 
-const normalizeRemoteVitals = data => ({
-  heartRate: firstDefined(data, ["heart_rate", "heartRate"]),
-  breathing: firstDefined(data, ["breathing_rate", "breathing"]),
-  bloodOxygen: firstDefined(data, ["blood_oxygen", "spo2", "bloodOxygen"]),
-  bodyTemperature: firstDefined(data, ["body_temperature", "bodyTemperature"]),
-  temperature: firstDefined(data, ["temperature", "temp"]),
-  humidity: firstDefined(data, ["humidity", "humi"]),
-  light: firstDefined(data, ["light", "light_intensity"]),
-  pressure: firstDefined(data, ["pressure"])
+const defaultAttendance = () => ({
+  date: today(),
+  status: "not_checked_in",
+  checkInTime: "",
+  checkOutTime: "",
+  logs: []
 });
 
-const isRemote = () => config.dataMode === "remote";
+const getAttendanceState = () => {
+  const saved = storage.read(KEYS.attendance, null);
+  if (!saved || saved.date !== today()) return defaultAttendance();
+  return saved;
+};
+
+const currentSubject = () => {
+  const monitor = workStore.getState().monitor;
+  const statuses = Object.keys(monitor.metrics).map(type => monitor.metrics[type].status);
+  const status = statuses.includes("danger") ? "danger" : statuses.includes("warning") ? "warning" : monitor.lastUpdate ? "normal" : "offline";
+  return {
+    id: config.careSubject.id,
+    displayName: config.careSubject.displayName,
+    room: "",
+    bed: config.careSubject.location,
+    careLevel: config.careSubject.careLevel,
+    status,
+    alertCount: monitor.alerts.length,
+    note: "单套实体设备实时监护",
+    lastUpdate: monitor.lastUpdate,
+    vitals: Object.keys(monitor.metrics).reduce((result, type) => {
+      result[type] = monitor.metrics[type].value;
+      return result;
+    }, {}),
+    infusion: clone(monitor.infusion),
+    devices: [{
+      id: "current-monitor-device",
+      name: config.careSubject.location,
+      status: monitor.device.status,
+      updatedAt: monitor.device.updatedAt
+    }]
+  };
+};
+
+const paginate = (rows, options) => {
+  const settings = options || {};
+  const page = Math.max(1, Number(settings.page) || 1);
+  const pageSize = Math.max(1, Math.min(20, Number(settings.pageSize) || 6));
+  const start = (page - 1) * pageSize;
+  return { rows: rows.slice(start, start + pageSize), total: rows.length, page, pageSize, hasMore: start + pageSize < rows.length };
+};
 
 const repository = {
   getCaregiverProfile() {
-    return clone(mock.caregiver);
+    return Object.assign({}, defaultCaregiver, storage.read(KEYS.caregiver, {}));
+  },
+
+  saveCaregiverProfile(patch) {
+    const profile = Object.assign({}, this.getCaregiverProfile(), patch || {});
+    if (!storage.write(KEYS.caregiver, profile)) throw new Error("个人信息保存失败");
+    return clone(profile);
   },
 
   getSelectedPatientId() {
-    return storage.read(KEYS.selectedPatient, mock.patients[0].id);
+    return config.careSubject.id;
   },
 
-  selectPatient(patientId) {
-    const patient = patientById(patientId);
-    storage.write(KEYS.selectedPatient, patient.id);
-    return clone(patient);
+  selectPatient() {
+    return clone(currentSubject());
   },
 
   async getDashboard() {
-    const taskList = getPersisted(KEYS.tasks, mock.tasks);
-    const alertList = getPersisted(KEYS.alerts, mock.alerts);
-    const attendance = getPersisted(KEYS.attendance, mock.attendance);
-    const patients = clone(mock.patients).sort((left, right) => {
-      const levelDiff = severityRank(right.status) - severityRank(left.status);
-      return levelDiff || right.alertCount - left.alertCount;
-    });
-    return delay({
-      caregiver: mock.caregiver,
-      shift: mock.caregiver.shift,
+    const caregiver = this.getCaregiverProfile();
+    const attendance = getAttendanceState();
+    const taskList = storage.read(KEYS.tasks, []);
+    const subject = currentSubject();
+    const alerts = workStore.getState().monitor.alerts.map(item => Object.assign({}, item, { patientId: subject.id }));
+    return {
+      caregiver,
+      shift: caregiver.shift,
       attendance,
-      patients,
-      alerts: alertList.filter(item => item.status === "pending").slice(0, 3),
+      patients: [subject],
+      alerts: alerts.slice(0, 3),
       tasks: taskList.filter(item => item.status !== "completed").slice(0, 4),
       counts: {
-        patients: patients.length,
-        alerts: alertList.filter(item => item.status === "pending").length,
+        patients: 1,
+        alerts: alerts.length,
         pendingTasks: taskList.filter(item => item.status !== "completed").length,
         completedTasks: taskList.filter(item => item.status === "completed").length
       }
-    });
+    };
   },
 
   async listPatients(options) {
     const settings = options || {};
+    const subject = currentSubject();
     const query = String(settings.query || "").trim().toLowerCase();
-    const status = settings.status || "all";
-    const page = Math.max(1, Number(settings.page) || 1);
-    const pageSize = Math.max(1, Math.min(20, Number(settings.pageSize) || 6));
-    let rows = clone(mock.patients);
-    if (query) {
-      rows = rows.filter(item => [item.displayName, item.bed, item.room, item.id].some(value => String(value).toLowerCase().includes(query)));
-    }
-    if (status !== "all") rows = rows.filter(item => item.status === status);
-    rows.sort((left, right) => severityRank(right.status) - severityRank(left.status));
-    const start = (page - 1) * pageSize;
-    return delay({ rows: rows.slice(start, start + pageSize), total: rows.length, page, pageSize, hasMore: start + pageSize < rows.length });
+    const matchesQuery = !query || [subject.displayName, subject.bed, subject.id].some(value => String(value).toLowerCase().includes(query));
+    const matchesStatus = !settings.status || settings.status === "all" || settings.status === subject.status;
+    return paginate(matchesQuery && matchesStatus ? [subject] : [], settings);
   },
 
-  async getPatient(patientId) {
-    return delay(patientById(patientId));
+  async getPatient() {
+    return clone(currentSubject());
   },
 
-  async getMonitorSnapshot(patientId) {
-    const patient = clone(patientById(patientId));
-    const controlState = getPersisted(KEYS.deviceControls, {});
-    const currentControls = controlState[patient.id] || { light: false, humidifier: false, fan: false };
-    patient.controls = [
-      { key: "light", name: "床旁灯光", enabled: Boolean(currentControls.light) },
-      { key: "humidifier", name: "加湿设备", enabled: Boolean(currentControls.humidifier) },
-      { key: "fan", name: "通风设备", enabled: Boolean(currentControls.fan) }
-    ];
-    if (isRemote()) {
-      const latest = await request.get(`/api/latest/${encodeURIComponent(patient.deviceId)}`);
-      const remoteVitals = normalizeRemoteVitals(latest || {});
-      patient.vitals = {};
-      Object.keys(remoteVitals).forEach(key => {
-        if (remoteVitals[key] !== undefined && remoteVitals[key] !== null) patient.vitals[key] = remoteVitals[key];
-      });
-      patient.lastUpdate = latest && (latest.created_at || latest.timestamp) || new Date().toISOString();
-      patient.infusion = {
-        initialWeight: Number(firstDefined(latest, ["weight_begin", "initial_weight"])) || 0,
-        remainingWeight: Number(firstDefined(latest, ["weight", "remaining_weight"])) || 0,
-        speed: Number(firstDefined(latest, ["infusion_speed", "speed"])) || 0,
-        threshold: Number(firstDefined(latest, ["weight_threshold", "threshold"])) || 0,
-        updatedAt: patient.lastUpdate
-      };
-      patient.devices = [{ id: `api-${patient.deviceId}`, name: "健康监测数据服务", status: "online", updatedAt: patient.lastUpdate }];
-    }
-    const vitalStatuses = Object.keys(patient.vitals).map(type => evaluateMetric(type, patient.vitals[type]));
-    const infusionDanger = patient.infusion.initialWeight > 0 && patient.infusion.remainingWeight <= patient.infusion.threshold;
-    if (vitalStatuses.includes("danger") || infusionDanger) patient.status = "danger";
-    else if (vitalStatuses.includes("warning")) patient.status = "warning";
-    return delay(patient, 120);
+  async getMonitorSnapshot() {
+    return clone(currentSubject());
   },
 
   async getHistory(patientId, metric, range) {
-    const patient = patientById(patientId);
-    const pointsByRange = { "2h": 12, "6h": 18, "24h": 24 };
-    const limit = pointsByRange[range] || 12;
-    if (!isRemote()) return delay(mock.buildHistory(patient.id, metric, limit), 220);
-
-    const rows = await request.get(`/api/history/${encodeURIComponent(patient.deviceId)}`, { limit, page: 1 });
-    const remoteRows = Array.isArray(rows) ? rows.slice().reverse() : [];
-    const fieldMap = {
-      heartRate: ["heart_rate", "heartRate"],
-      breathing: ["breathing_rate", "breathing"],
-      bloodOxygen: ["blood_oxygen", "spo2", "bloodOxygen"],
-      bodyTemperature: ["body_temperature", "bodyTemperature"],
-      temperature: ["temperature", "temp"],
-      humidity: ["humidity", "humi"],
-      light: ["light", "light_intensity"],
-      pressure: ["pressure"]
-    };
-    const fields = fieldMap[metric] || [metric];
-    return remoteRows.map(item => {
-      const field = fields.find(name => item[name] !== undefined && item[name] !== null);
-      return { time: item.created_at || item.timestamp, value: field ? Number(item[field]) : null };
-    }).filter(item => Number.isFinite(item.value));
+    return clone(workStore.getLiveHistory(metric, range));
   },
 
-  async listAlerts(patientId) {
-    const rows = getPersisted(KEYS.alerts, mock.alerts)
-      .filter(item => !patientId || item.patientId === patientId)
-      .sort((left, right) => severityRank(right.level) - severityRank(left.level));
-    return delay(rows);
+  async listAlerts() {
+    return clone(workStore.getState().monitor.alerts.map(item => Object.assign({}, item, { patientId: config.careSubject.id, status: "pending" })));
   },
 
-  async acknowledgeAlert(alertId, note) {
-    const rows = getPersisted(KEYS.alerts, mock.alerts);
-    const index = rows.findIndex(item => item.id === alertId);
-    if (index < 0) throw new Error("未找到需要处理的告警");
-    rows[index] = Object.assign({}, rows[index], {
-      status: "acknowledged",
-      handledAt: new Date().toISOString(),
-      handleNote: String(note || "已查看并核对").trim()
-    });
-    if (!storage.write(KEYS.alerts, rows)) throw new Error("本地记录保存失败");
-    return delay(rows[index], 120);
+  async acknowledgeAlert(alertId) {
+    if (!workStore.acknowledgeAlert(alertId)) throw new Error("告警已更新或不存在");
+    return { id: alertId, status: "acknowledged", handledAt: new Date().toISOString() };
   },
 
-  async updateDeviceControl(patientId, device, enabled) {
-    if (!mock.patients.some(item => item.id === patientId)) throw new Error("服务对象不存在");
-    if (!["light", "humidifier", "fan"].includes(device)) throw new Error("设备类型无效");
-    const controlState = getPersisted(KEYS.deviceControls, {});
-    controlState[patientId] = Object.assign({}, controlState[patientId] || {}, { [device]: Boolean(enabled) });
-    if (!storage.write(KEYS.deviceControls, controlState)) throw new Error("设备演示状态保存失败");
-    return delay({ patientId, device, enabled: Boolean(enabled) }, 120);
+  async updateDeviceControl() {
+    throw new Error("请通过 MQTT 实时通道控制设备");
   },
 
   async listTasks(options) {
     const settings = options || {};
-    const status = settings.status || "all";
-    const page = Math.max(1, Number(settings.page) || 1);
-    const pageSize = Math.max(1, Math.min(20, Number(settings.pageSize) || 6));
-    let rows = getPersisted(KEYS.tasks, mock.tasks);
-    if (status !== "all") rows = rows.filter(item => item.status === status);
-    rows = rows.slice().sort((left, right) => left.scheduledTime.localeCompare(right.scheduledTime));
-    const start = (page - 1) * pageSize;
-    return delay({ rows: rows.slice(start, start + pageSize), total: rows.length, page, pageSize, hasMore: start + pageSize < rows.length });
+    let rows = storage.read(KEYS.tasks, []).slice();
+    if (settings.status && settings.status !== "all") rows = rows.filter(item => item.status === settings.status);
+    rows.sort((left, right) => String(left.scheduledTime || "").localeCompare(String(right.scheduledTime || "")));
+    return resolved(paginate(rows, settings));
   },
 
   async getTask(taskId) {
-    const task = getPersisted(KEYS.tasks, mock.tasks).find(item => item.id === taskId);
-    if (!task) throw new Error("任务不存在或已被移除");
-    return delay(Object.assign({}, task, { patient: patientById(task.patientId) }));
+    const task = storage.read(KEYS.tasks, []).find(item => item.id === taskId);
+    if (!task) throw new Error("任务不存在或尚未从业务系统同步");
+    return clone(Object.assign({}, task, { patient: currentSubject() }));
   },
 
   async updateTask(taskId, status) {
     if (!["pending", "processing", "completed"].includes(status)) throw new Error("任务状态无效");
-    const rows = getPersisted(KEYS.tasks, mock.tasks);
+    const rows = storage.read(KEYS.tasks, []);
     const index = rows.findIndex(item => item.id === taskId);
-    if (index < 0) throw new Error("任务不存在或已被移除");
+    if (index < 0) throw new Error("任务不存在或尚未从业务系统同步");
     rows[index] = Object.assign({}, rows[index], {
       status,
       updatedAt: new Date().toISOString(),
-      completedTime: status === "completed" ? new Date().toTimeString().slice(0, 5) : ""
+      completedTime: status === "completed" ? currentTime() : ""
     });
     if (!storage.write(KEYS.tasks, rows)) throw new Error("任务状态保存失败");
-    return delay(rows[index], 150);
+    return clone(rows[index]);
   },
 
   async getAttendance() {
-    return delay(getPersisted(KEYS.attendance, mock.attendance));
+    return clone(getAttendanceState());
   },
 
   async clock(action) {
-    const attendance = getPersisted(KEYS.attendance, mock.attendance);
+    const attendance = getAttendanceState();
     if (action === "check_in" && attendance.status !== "not_checked_in") throw new Error("当前班次已签到");
     if (action === "check_out" && attendance.status !== "checked_in") throw new Error("请先完成签到");
-    const time = new Date().toTimeString().slice(0, 5);
+    const time = currentTime();
+    const log = { id: `ATT-${Date.now()}`, date: attendance.date, action, time, location: "未校验定位" };
     const next = Object.assign({}, attendance, action === "check_in"
       ? { status: "checked_in", checkInTime: time }
-      : { status: "checked_out", checkOutTime: time });
+      : { status: "checked_out", checkOutTime: time }, { logs: (attendance.logs || []).concat([log]) });
     if (!storage.write(KEYS.attendance, next)) throw new Error("考勤记录保存失败");
-    return delay(next, 260);
+    return clone(next);
   },
 
   async listAttendance() {
-    const attendance = getPersisted(KEYS.attendance, mock.attendance);
-    return delay(attendance.logs || []);
+    return clone(getAttendanceState().logs || []);
   },
 
   async listRecords(options) {
     const settings = options || {};
-    const patientId = settings.patientId || "";
-    const page = Math.max(1, Number(settings.page) || 1);
-    const pageSize = Math.max(1, Math.min(20, Number(settings.pageSize) || 6));
-    let rows = getPersisted(KEYS.records, mock.records);
-    if (patientId) rows = rows.filter(item => item.patientId === patientId);
-    rows = rows.slice().sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
-    const start = (page - 1) * pageSize;
-    return delay({
-      rows: rows.slice(start, start + pageSize).map(item => Object.assign({}, item, { patient: patientById(item.patientId) })),
-      total: rows.length,
-      page,
-      pageSize,
-      hasMore: start + pageSize < rows.length
-    });
+    let rows = storage.read(KEYS.records, []).slice();
+    if (settings.patientId) rows = rows.filter(item => item.patientId === settings.patientId);
+    rows.sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
+    const result = paginate(rows, settings);
+    result.rows = result.rows.map(item => Object.assign({}, item, { patient: currentSubject() }));
+    return clone(result);
   },
 
   async createRecord(record) {
     const content = String(record.content || "").trim();
     const result = String(record.result || "").trim();
-    if (!record.patientId || !mock.patients.some(item => item.id === record.patientId)) throw new Error("请选择服务对象");
+    if (record.patientId !== config.careSubject.id) throw new Error("当前照护对象无效");
     if (!content) throw new Error("请填写照护事项");
     if (content.length > 300) throw new Error("照护事项不能超过300字");
     if (!result) throw new Error("请填写处理结果");
     if (result.length > 120) throw new Error("处理结果不能超过120字");
-    const rows = getPersisted(KEYS.records, mock.records);
+    const rows = storage.read(KEYS.records, []);
     const item = {
       id: `REC-${Date.now()}`,
-      patientId: record.patientId,
+      patientId: config.careSubject.id,
       type: record.type || "日常照护",
       content,
       result,
       createdAt: new Date().toISOString(),
-      author: mock.caregiver.name
+      author: this.getCaregiverProfile().name
     };
     rows.unshift(item);
     if (!storage.write(KEYS.records, rows.slice(0, 200))) throw new Error("照护记录保存失败");
-    return delay(item, 180);
+    return clone(item);
   },
 
   async listCertificates() {
-    return delay(mock.certificates);
+    return [];
   },
 
   async listTraining() {
-    return delay(mock.training);
+    return [];
   }
 };
 

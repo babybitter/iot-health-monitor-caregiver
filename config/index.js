@@ -1,21 +1,46 @@
-const defaults = {
-  dataMode: "mock",
+const config = {
   apiBaseUrl: "https://api.healthtrack.top",
   requestTimeout: 20000,
+
+  // 当前实体演示只有一套监护设备，因此不在客户端虚构患者列表。
+  careSubject: {
+    id: "current-care-subject",
+    displayName: "当前照护对象",
+    location: "当前监护设备",
+    careLevel: "信息待机构配置"
+  },
+
   mqtt: {
-    enabled: false,
-    url: "wss://mqtt.healthtrack.top:8084/mqtt",
-    username: "",
-    password: "",
-    topicPrefix: "patient"
+    enabled: true,
+    hostDev: "ws://106.14.12.227:8083/mqtt",
+    hostProd: "wss://mqtt.healthtrack.top:8084/mqtt",
+    url: "ws://106.14.12.227:8083/mqtt",
+    username: "test",
+    password: "test123",
+    keepalive: 60,
+    reconnectPeriod: 3000,
+    topics: {
+      light: "patient/monitor/light",
+      pressure: "patient/monitor/pressure",
+      temperature: "patient/monitor/temperature",
+      humidity: "patient/monitor/humidity",
+      breathing: "patient/monitor/breathing",
+      heartRate: "patient/monitor/heart_rate",
+      bloodOxygen: "patient/monitor/blood_oxygen",
+      bodyTemperature: "patient/upload/data/temperature",
+      weight: "patient/monitor/weight",
+      weightBegin: "patient/monitor/weight-begin",
+      infusionSpeed: "patient/monitor/infusion-speed",
+      deviceStatus: "patient/status/device",
+      dataUpload: "patient/upload/data",
+      deviceAdvice: "patient/advice/device",
+      vitalTemperature: "patient/upload/data/temperature",
+      hardwareDevices: "home/devices/onoff/#"
+    },
+    publishTopic: "patient/control/device",
+    weightDriveTopic: "patient/monitor/weight-drive"
   }
 };
-
-// 微信开发者工具会在打包期解析所有静态 require，不能引用一个可能不存在的
-// 本地配置文件。真实环境配置应由发布流程写入，凭据应由登录后的后端接口下发。
-const config = Object.assign({}, defaults, {
-  mqtt: Object.assign({}, defaults.mqtt)
-});
 
 config.thresholds = {
   heartRate: { warningLow: 55, warningHigh: 105, dangerLow: 45, dangerHigh: 130 },

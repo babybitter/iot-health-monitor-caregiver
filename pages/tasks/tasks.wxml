@@ -9,7 +9,7 @@
 
   <state-panel wx:if="{{loading}}" type="loading" title="正在加载任务"></state-panel>
   <state-panel wx:elif="{{error}}" type="error" title="任务加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
-  <state-panel wx:elif="{{!tasks.length}}" type="empty" title="当前分组没有任务" description="可切换状态查看其他任务"></state-panel>
+  <state-panel wx:elif="{{!tasks.length}}" type="empty" title="当前分组没有任务" description="护工业务接口尚未同步任务，可切换状态继续查看"></state-panel>
 
   <view wx:else class="task-cards">
     <button wx:for="{{tasks}}" wx:key="id" class="task-card card" data-id="{{item.id}}" bindtap="openTask">
@@ -32,4 +32,3 @@
     <view wx:else class="list-end">已显示当前分组全部任务</view>
   </view>
 </view>
-

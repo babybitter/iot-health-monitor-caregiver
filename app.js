@@ -1,25 +1,29 @@
 const repository = require("./services/repository");
+const realtime = require("./services/realtime");
 const workStore = require("./store/work-store");
 
 App({
   globalData: {
     caregiver: null,
-    selectedPatientId: "",
     networkOnline: true,
     realtimeConnected: false
   },
 
   onLaunch() {
-    const account = repository.getCaregiverProfile();
-    const selectedPatientId = repository.getSelectedPatientId();
-    this.globalData.caregiver = account;
-    this.globalData.selectedPatientId = selectedPatientId;
-    workStore.initialize({ caregiver: account, selectedPatientId });
+    const caregiver = repository.getCaregiverProfile();
+    this.globalData.caregiver = caregiver;
+    workStore.initialize({ caregiver });
+    this.unsubscribeRealtime = realtime.on(event => {
+      workStore.handleRealtimeEvent(event);
+      if (event.type === "connection") this.globalData.realtimeConnected = Boolean(event.connected);
+    });
+    this.connectRealtime();
 
     if (wx.onNetworkStatusChange) {
       wx.onNetworkStatusChange(({ isConnected }) => {
         this.globalData.networkOnline = isConnected;
         workStore.setState({ networkOnline: isConnected });
+        if (isConnected) this.connectRealtime();
       });
     }
   },
@@ -31,9 +35,14 @@ App({
           const networkOnline = networkType !== "none";
           this.globalData.networkOnline = networkOnline;
           workStore.setState({ networkOnline });
+          if (networkOnline) this.connectRealtime();
         }
       });
     }
+  },
+
+  connectRealtime() {
+    if (!realtime.isEnabled() || !this.globalData.networkOnline) return Promise.resolve(false);
+    return realtime.connect().then(() => true).catch(() => false);
   }
 });
-

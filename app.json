@@ -4,7 +4,6 @@
     "pages/monitor/monitor",
     "pages/tasks/tasks",
     "pages/profile/profile",
-    "pages/patients/patients",
     "pages/task-detail/task-detail",
     "pages/records/records",
     "pages/record-edit/record-edit",
@@ -29,19 +28,27 @@
     "list": [
       {
         "pagePath": "pages/workbench/workbench",
-        "text": "工作台"
+        "text": "工作台",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home.png"
       },
       {
         "pagePath": "pages/monitor/monitor",
-        "text": "智能监控"
+        "text": "智能监控",
+        "iconPath": "images/infusion.png",
+        "selectedIconPath": "images/infusion.png"
       },
       {
         "pagePath": "pages/tasks/tasks",
-        "text": "任务"
+        "text": "任务",
+        "iconPath": "images/note.png",
+        "selectedIconPath": "images/note.png"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "images/user.png",
+        "selectedIconPath": "images/user.png"
       }
     ]
   },

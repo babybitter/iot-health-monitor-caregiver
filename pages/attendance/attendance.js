@@ -55,7 +55,7 @@ Page({
     this.setData({ submitting: true });
     try {
       const attendance = await repository.clock(action);
-      this.setData({ attendance, submitting: false });
+      this.setData({ attendance, logs: attendance.logs || [], submitting: false });
       wx.showToast({ title: action === "check_in" ? "签到成功" : "签退成功", icon: "success" });
     } catch (error) {
       this.setData({ submitting: false });
@@ -63,4 +63,3 @@ Page({
     }
   }
 });
-

@@ -7,10 +7,8 @@
 
   <view wx:else class="record-form card">
     <view class="form-field">
-      <view class="form-label"><text>服务对象</text><text class="form-required">必填</text></view>
-      <picker mode="selector" range="{{patientNames}}" value="{{selectedPatientIndex}}" bindchange="onPatientChange">
-        <view class="form-picker">{{patientNames[selectedPatientIndex]}}<view class="form-chevron"></view></view>
-      </picker>
+      <view class="form-label"><text>服务对象</text><text class="form-required">当前设备</text></view>
+      <view class="form-picker form-picker--readonly">{{patientNames[selectedPatientIndex]}}</view>
     </view>
 
     <view class="form-field">
@@ -40,4 +38,3 @@
     <button class="primary-button" disabled="{{submitting}}" bindtap="submit">{{submitting ? '保存中' : '保存记录'}}</button>
   </view>
 </view>
-

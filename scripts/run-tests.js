@@ -7,8 +7,17 @@ global.wx = {
   removeStorageSync(key) { memory.delete(key); }
 };
 
+const config = require("../config/index.js");
 const { evaluateMetric, formatMetric } = require("../utils/health");
+const workStore = require("../store/work-store");
 const repository = require("../services/repository");
+
+const message = (topic, payload, offset) => workStore.handleRealtimeEvent({
+  type: "message",
+  topic,
+  payload,
+  receivedAt: new Date(Date.now() + (offset || 0)).toISOString()
+});
 
 const run = async () => {
   assert.strictEqual(evaluateMetric("heartRate", 80), "normal");
@@ -16,37 +25,77 @@ const run = async () => {
   assert.strictEqual(evaluateMetric("bloodOxygen", 89), "danger");
   assert.strictEqual(formatMetric("bodyTemperature", 36.78).value, "36.8");
 
-  const firstPage = await repository.listPatients({ page: 1, pageSize: 2 });
-  assert.strictEqual(firstPage.rows.length, 2);
-  assert.strictEqual(firstPage.hasMore, true);
+  const expectedTopics = {
+    light: "patient/monitor/light",
+    pressure: "patient/monitor/pressure",
+    temperature: "patient/monitor/temperature",
+    humidity: "patient/monitor/humidity",
+    breathing: "patient/monitor/breathing",
+    heartRate: "patient/monitor/heart_rate",
+    bloodOxygen: "patient/monitor/blood_oxygen",
+    bodyTemperature: "patient/upload/data/temperature",
+    weight: "patient/monitor/weight",
+    weightBegin: "patient/monitor/weight-begin",
+    infusionSpeed: "patient/monitor/infusion-speed",
+    deviceStatus: "patient/status/device",
+    dataUpload: "patient/upload/data",
+    deviceAdvice: "patient/advice/device",
+    vitalTemperature: "patient/upload/data/temperature",
+    hardwareDevices: "home/devices/onoff/#"
+  };
+  assert.deepStrictEqual(config.mqtt.topics, expectedTopics);
+  assert.strictEqual(config.mqtt.publishTopic, "patient/control/device");
 
-  const history = await repository.getHistory("P-1008", "bloodOxygen", "2h");
-  assert.strictEqual(history.length, 12);
-  assert.ok(history.every(item => Number.isFinite(item.value)));
+  workStore.handleRealtimeEvent({ type: "connection", connected: true });
+  message(config.mqtt.topics.heartRate, { value: 110 });
+  message(config.mqtt.topics.bodyTemperature, "36.8", 1);
+  message(config.mqtt.topics.dataUpload, { humidity: 56, pressure: 1012, blood_oxygen: 97 }, 2);
+  message(config.mqtt.topics.weightBegin, { value: 500 }, 3);
+  message(config.mqtt.topics.weight, 80, 4);
+  message(config.mqtt.topics.infusionSpeed, { value: 45 }, 5);
+  message(config.mqtt.topics.deviceStatus, { device: "light", status: true, online: true }, 6);
 
-  const deviceControl = await repository.updateDeviceControl("P-1008", "light", true);
-  assert.strictEqual(deviceControl.enabled, true);
+  const monitor = workStore.getState().monitor;
+  assert.strictEqual(monitor.metrics.heartRate.value, 110);
+  assert.strictEqual(monitor.metrics.bodyTemperature.value, 36.8);
+  assert.strictEqual(monitor.metrics.humidity.value, 56);
+  assert.strictEqual(monitor.metrics.pressure.value, 1012);
+  assert.strictEqual(monitor.metrics.bloodOxygen.value, 97);
+  assert.strictEqual(monitor.infusion.initialWeight, 500);
+  assert.strictEqual(monitor.infusion.remainingWeight, 80);
+  assert.strictEqual(monitor.infusion.speed, 45);
+  assert.strictEqual(monitor.device.controls.light, true);
+  assert.ok(monitor.alerts.some(item => item.id === "metric-heartRate"));
+  assert.strictEqual(workStore.getLiveHistory("heartRate", "2h").length, 1);
 
-  await repository.updateTask("TSK-003", "processing");
-  const processingTask = await repository.getTask("TSK-003");
-  assert.strictEqual(processingTask.status, "processing");
-  await repository.updateTask("TSK-003", "completed");
-  const completedTask = await repository.getTask("TSK-003");
-  assert.strictEqual(completedTask.status, "completed");
+  assert.strictEqual(workStore.acknowledgeAlert("metric-heartRate"), true);
+  assert.ok(!workStore.getState().monitor.alerts.some(item => item.id === "metric-heartRate"));
+
+  const subjectPage = await repository.listPatients({ page: 1, pageSize: 5 });
+  assert.strictEqual(subjectPage.rows.length, 1);
+  assert.strictEqual(subjectPage.rows[0].id, config.careSubject.id);
+  const tasks = await repository.listTasks({ status: "all", page: 1, pageSize: 6 });
+  assert.strictEqual(tasks.total, 0);
 
   const checkedIn = await repository.clock("check_in");
   assert.strictEqual(checkedIn.status, "checked_in");
   const checkedOut = await repository.clock("check_out");
   assert.strictEqual(checkedOut.status, "checked_out");
+  assert.strictEqual(checkedOut.logs.length, 2);
 
   await assert.rejects(
-    repository.createRecord({ patientId: "P-1008", content: "", result: "已处理" }),
+    repository.createRecord({ patientId: config.careSubject.id, content: "", result: "已处理" }),
     /照护事项/
   );
-  const record = await repository.createRecord({ patientId: "P-1008", type: "异常观察", content: "已完成现场核对", result: "继续观察" });
-  assert.strictEqual(record.patientId, "P-1008");
+  const record = await repository.createRecord({
+    patientId: config.careSubject.id,
+    type: "异常观察",
+    content: "已完成现场核对",
+    result: "继续观察"
+  });
+  assert.strictEqual(record.patientId, config.careSubject.id);
 
-  console.log("Core logic tests passed: thresholds, paging, trends, device controls, tasks, attendance and records.");
+  console.log("Core logic tests passed: thresholds, MQTT topics, live mapping, infusion, device feedback, trends, attendance and records.");
 };
 
 run().catch(error => {

@@ -41,7 +41,7 @@ const join = arrays => {
 
 const buildConnectPacket = () => {
   const protocol = mqttString("MQTT");
-  const clientId = mqttString(`caregiver_${Date.now()}_${Math.floor(Math.random() * 10000)}`);
+  const clientId = mqttString(`caregiver_monitor_${Date.now()}_${Math.floor(Math.random() * 10000)}`);
   const username = config.mqtt.username ? mqttString(config.mqtt.username) : new Uint8Array(0);
   const password = config.mqtt.password ? mqttString(config.mqtt.password) : new Uint8Array(0);
   let flags = 2;
@@ -51,8 +51,8 @@ const buildConnectPacket = () => {
   variableHeader.set(protocol, 0);
   variableHeader[protocol.length] = 4;
   variableHeader[protocol.length + 1] = flags;
-  variableHeader[protocol.length + 2] = 0;
-  variableHeader[protocol.length + 3] = 60;
+  variableHeader[protocol.length + 2] = config.mqtt.keepalive >> 8;
+  variableHeader[protocol.length + 3] = config.mqtt.keepalive & 255;
   const payload = [clientId, username, password];
   const bodyLength = variableHeader.length + payload.reduce((sum, item) => sum + item.length, 0);
   return join([new Uint8Array([16]), remainingLength(bodyLength), variableHeader].concat(payload));
@@ -68,7 +68,8 @@ const buildSubscribePacket = (topic, packetId) => {
 
 const buildPublishPacket = (topic, payload) => {
   const topicBytes = mqttString(topic);
-  const payloadBytes = textBytes(JSON.stringify(payload));
+  const serialized = typeof payload === "string" ? payload : JSON.stringify(payload);
+  const payloadBytes = textBytes(serialized);
   const length = topicBytes.length + payloadBytes.length;
   return join([new Uint8Array([48]), remainingLength(length), topicBytes, payloadBytes]);
 };
@@ -87,60 +88,93 @@ class RealtimeClient {
   constructor() {
     this.socket = null;
     this.connected = false;
+    this.connecting = null;
     this.packetId = 1;
     this.listeners = [];
+    this.manualClose = false;
+    this.reconnectTimer = null;
+    this.keepaliveTimer = null;
   }
 
   isEnabled() {
     return Boolean(config.mqtt.enabled && config.mqtt.url);
   }
 
-  connect() {
-    if (!this.isEnabled()) return Promise.reject(new Error("实时连接未配置"));
-    if (this.connected && this.socket) return Promise.resolve();
+  isConnected() {
+    return this.connected;
+  }
 
-    return new Promise((resolve, reject) => {
+  connect() {
+    if (!this.isEnabled()) return Promise.reject(new Error("MQTT 实时连接未启用"));
+    if (this.connected && this.socket) return Promise.resolve();
+    if (this.connecting) return this.connecting;
+    this.manualClose = false;
+    clearTimeout(this.reconnectTimer);
+
+    this.connecting = new Promise((resolve, reject) => {
       let settled = false;
-      const timer = setTimeout(() => {
-        if (!settled) {
-          settled = true;
-          reject(new Error("实时连接超时"));
-        }
+      const finish = (error) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutTimer);
+        this.connecting = null;
+        if (error) reject(error);
+        else resolve();
+      };
+      const timeoutTimer = setTimeout(() => {
+        const error = new Error("MQTT 连接超时");
+        this.emit({ type: "connection", connected: false, error: error.message });
+        finish(error);
+        if (this.socket) this.socket.close({ code: 1000, reason: "connect timeout" });
       }, config.requestTimeout);
 
-      this.socket = wx.connectSocket({ url: config.mqtt.url, protocols: ["mqtt"] });
-      this.socket.onOpen(() => this.socket.send({ data: buildConnectPacket() }));
-      this.socket.onMessage(event => {
-        const type = this.handlePacket(event.data);
-        if (type === "connected" && !settled) {
-          settled = true;
-          clearTimeout(timer);
+      const socket = wx.connectSocket({ url: config.mqtt.url, protocols: ["mqtt"] });
+      this.socket = socket;
+      socket.onOpen(() => socket.send({ data: buildConnectPacket() }));
+      socket.onMessage(event => {
+        const packet = this.handlePacket(event.data);
+        if (packet === "connected") {
           this.connected = true;
-          resolve();
+          this.startKeepalive();
+          this.subscribeConfiguredTopics();
+          this.emit({ type: "connection", connected: true, error: "" });
+          finish();
+        } else if (packet === "rejected") {
+          const error = new Error("MQTT 服务器拒绝连接");
+          finish(error);
+          socket.close({ code: 1000, reason: "mqtt rejected" });
         }
       });
-      this.socket.onError(() => {
+      socket.onError(() => {
         this.connected = false;
-        if (!settled) {
-          settled = true;
-          clearTimeout(timer);
-          reject(new Error("实时连接失败"));
-        }
+        const error = new Error("MQTT 连接失败，请检查网络和合法域名配置");
+        this.emit({ type: "connection", connected: false, error: error.message });
+        finish(error);
+        this.scheduleReconnect();
       });
-      this.socket.onClose(() => {
+      socket.onClose(() => {
+        if (this.socket === socket) this.socket = null;
         this.connected = false;
-        this.emit({ type: "connection", connected: false });
+        this.stopKeepalive();
+        this.emit({ type: "connection", connected: false, error: this.manualClose ? "" : "MQTT 连接已断开" });
+        finish(new Error("MQTT 连接已断开"));
+        this.scheduleReconnect();
       });
     });
+
+    return this.connecting;
   }
 
   handlePacket(raw) {
     if (!(raw instanceof ArrayBuffer)) return "ignored";
     const bytes = new Uint8Array(raw);
+    if (!bytes.length) return "ignored";
     const packetType = bytes[0] >> 4;
-    if (packetType === 2 && bytes[bytes.length - 1] === 0) {
-      this.emit({ type: "connection", connected: true });
-      return "connected";
+    if (packetType === 2) {
+      const returnCode = bytes.length >= 4 ? bytes[3] : 255;
+      if (returnCode === 0) return "connected";
+      this.emit({ type: "connection", connected: false, error: `MQTT 鉴权失败（${returnCode}）` });
+      return "rejected";
     }
     if (packetType !== 3) return "ignored";
     let multiplier = 1;
@@ -153,6 +187,7 @@ class RealtimeClient {
       multiplier *= 128;
       offset += 1;
     } while ((digit & 128) !== 0 && offset < bytes.length);
+    if (offset + 2 > bytes.length) return "ignored";
     const topicLength = (bytes[offset] << 8) + bytes[offset + 1];
     offset += 2;
     const topic = decodeUtf8(bytes.slice(offset, offset + topicLength));
@@ -160,23 +195,13 @@ class RealtimeClient {
     const payloadText = decodeUtf8(bytes.slice(offset));
     let payload = payloadText;
     try { payload = JSON.parse(payloadText); } catch (error) { payload = payloadText; }
-    this.emit({ type: "message", topic, payload });
+    this.emit({ type: "message", topic, payload, receivedAt: new Date().toISOString() });
     return "message";
   }
 
-  subscribeSelectedPatient() {
+  subscribeConfiguredTopics() {
     if (!this.connected || !this.socket) return false;
-    const prefix = config.mqtt.topicPrefix;
-    const topics = [
-      `${prefix}/monitor/heart_rate`,
-      `${prefix}/monitor/breathing`,
-      `${prefix}/monitor/blood_oxygen`,
-      `${prefix}/upload/data/temperature`,
-      `${prefix}/monitor/weight`,
-      `${prefix}/monitor/weight-begin`,
-      `${prefix}/monitor/infusion-speed`,
-      `${prefix}/status/device`
-    ];
+    const topics = Array.from(new Set(Object.keys(config.mqtt.topics).map(key => config.mqtt.topics[key]).filter(Boolean)));
     topics.forEach(topic => {
       this.packetId = this.packetId >= 65535 ? 1 : this.packetId + 1;
       this.socket.send({ data: buildSubscribePacket(topic, this.packetId) });
@@ -185,9 +210,13 @@ class RealtimeClient {
   }
 
   publish(topic, payload) {
-    if (!this.connected || !this.socket) return Promise.reject(new Error("设备实时连接不可用"));
+    if (!this.connected || !this.socket) return Promise.reject(new Error("MQTT 实时连接不可用"));
     return new Promise((resolve, reject) => {
-      this.socket.send({ data: buildPublishPacket(topic, payload), success: resolve, fail: () => reject(new Error("控制指令发送失败")) });
+      this.socket.send({
+        data: buildPublishPacket(topic, payload),
+        success: resolve,
+        fail: () => reject(new Error("设备控制指令发送失败"))
+      });
     });
   }
 
@@ -204,10 +233,35 @@ class RealtimeClient {
     this.listeners.slice().forEach(listener => listener(event));
   }
 
+  startKeepalive() {
+    this.stopKeepalive();
+    this.keepaliveTimer = setInterval(() => {
+      if (this.connected && this.socket) this.socket.send({ data: new Uint8Array([192, 0]).buffer });
+    }, Math.max(20000, (config.mqtt.keepalive - 15) * 1000));
+  }
+
+  stopKeepalive() {
+    clearInterval(this.keepaliveTimer);
+    this.keepaliveTimer = null;
+  }
+
+  scheduleReconnect() {
+    if (this.manualClose || !this.isEnabled() || this.reconnectTimer) return;
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.connect().catch(() => {});
+    }, config.mqtt.reconnectPeriod);
+  }
+
   disconnect() {
-    if (this.socket) this.socket.close({ code: 1000, reason: "page hidden" });
+    this.manualClose = true;
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.stopKeepalive();
+    if (this.socket) this.socket.close({ code: 1000, reason: "application close" });
     this.socket = null;
     this.connected = false;
+    this.connecting = null;
   }
 }
 
