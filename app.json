@@ -1,6 +1,8 @@
 {
   "pages": [
-    "pages/workbench/workbench"
+    "pages/workbench/workbench",
+    "pages/monitor/monitor",
+    "pages/patients/patients"
   ],
   "window": {
     "navigationStyle": "custom",
@@ -10,6 +12,22 @@
     "backgroundColor": "#f4f7fb",
     "backgroundTextStyle": "dark",
     "enablePullDownRefresh": false
+  },
+  "tabBar": {
+    "color": "#7c8799",
+    "selectedColor": "#1769e0",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/workbench/workbench",
+        "text": "工作台"
+      },
+      {
+        "pagePath": "pages/monitor/monitor",
+        "text": "智能监控"
+      }
+    ]
   },
   "style": "v2",
   "componentFramework": "glass-easel",

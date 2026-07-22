@@ -1,0 +1,133 @@
+.patient-page { padding-top: 20rpx; }
+
+.search-bar {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.search-input {
+  min-width: 0;
+  height: 78rpx;
+  flex: 1;
+  padding: 0 22rpx;
+  border: 1rpx solid #d9e2ee;
+  border-radius: 16rpx;
+  background: #ffffff;
+  color: #273444;
+  font-size: 25rpx;
+}
+
+.search-placeholder { color: #9aa5b4; }
+
+.search-clear,
+.search-button {
+  display: flex;
+  min-height: 70rpx;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 14rpx 18rpx;
+  border-radius: 14rpx;
+  color: #5e6b7d;
+  font-size: 23rpx;
+}
+
+.search-button { background: #1769e0; color: #ffffff; font-weight: 600; }
+
+.patient-filters {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10rpx;
+  margin-top: 18rpx;
+}
+
+.patient-filter {
+  min-width: 0;
+  padding: 13rpx 8rpx;
+  border: 1rpx solid #dfe6ef;
+  border-radius: 999rpx;
+  background: #ffffff;
+  color: #667386;
+  font-size: 22rpx;
+  text-align: center;
+}
+
+.patient-filter--active { border-color: #1769e0; background: #eaf2ff; color: #0d4fae; font-weight: 600; }
+
+.patient-total { margin: 22rpx 4rpx 14rpx; color: #7c8799; font-size: 22rpx; }
+
+.patient-list { display: flex; width: 100%; min-width: 0; gap: 16rpx; flex-direction: column; }
+
+.patient-item { padding: 0; }
+
+.patient-item__main {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 20rpx;
+  padding: 26rpx;
+  text-align: left;
+}
+
+.patient-item__avatar {
+  display: flex;
+  width: 78rpx;
+  height: 78rpx;
+  flex: 0 0 78rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22rpx;
+  background: #eaf2ff;
+  color: #0d4fae;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.patient-item__content { min-width: 0; flex: 1; }
+
+.patient-item__headline { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12rpx; }
+.patient-item__name { min-width: 0; flex: 1; color: #182230; font-size: 29rpx; font-weight: 650; }
+.patient-item__meta { margin-top: 8rpx; color: #69778a; font-size: 22rpx; }
+.patient-item__note { margin-top: 14rpx; color: #344054; font-size: 23rpx; line-height: 1.5; }
+.patient-item__update { margin-top: 12rpx; color: #9aa5b4; font-size: 20rpx; }
+
+.patient-item__actions {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1rpx solid #edf1f5;
+}
+
+.patient-item__actions button {
+  min-width: 0;
+  padding: 18rpx 12rpx;
+  color: #1769e0;
+  font-size: 23rpx;
+  font-weight: 600;
+  text-align: center;
+}
+
+.patient-item__actions button + button { border-left: 1rpx solid #edf1f5; }
+
+.load-more {
+  min-height: 76rpx;
+  border: 1rpx solid #c9d9ed;
+  border-radius: 16rpx;
+  background: #edf4fd;
+  color: #0d4fae;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.list-end { padding: 20rpx; color: #9aa5b4; font-size: 21rpx; text-align: center; }
+
+@media (max-width: 360px) {
+  .search-clear { display: none; }
+  .patient-filter { font-size: 20rpx; }
+}
+

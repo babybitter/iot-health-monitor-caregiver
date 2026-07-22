@@ -1,0 +1,11 @@
+{
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "app-nav": "/components/app-nav/app-nav",
+    "state-panel": "/components/state-panel/state-panel",
+    "status-tag": "/components/status-tag/status-tag",
+    "ec-canvas": "/ec-canvas/ec-canvas"
+  }
+}
+

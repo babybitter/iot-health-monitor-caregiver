@@ -1,0 +1,43 @@
+<app-nav title="负责患者" subtitle="仅展示当前班次分配" back="{{true}}"></app-nav>
+
+<view class="page-shell patient-page">
+  <view class="search-bar">
+    <input class="search-input" value="{{query}}" placeholder="搜索床位、姓名或编号" placeholder-class="search-placeholder" confirm-type="search" bindinput="onQueryInput" bindconfirm="search" />
+    <button wx:if="{{query}}" class="search-clear" bindtap="clearQuery">清除</button>
+    <button class="search-button" bindtap="search">搜索</button>
+  </view>
+
+  <view class="patient-filters">
+    <button wx:for="{{filters}}" wx:key="key" class="patient-filter {{activeStatus === item.key ? 'patient-filter--active' : ''}}" data-key="{{item.key}}" bindtap="selectFilter">{{item.label}}</button>
+  </view>
+
+  <view class="patient-total">共 {{total}} 位服务对象</view>
+
+  <state-panel wx:if="{{loading}}" type="loading" title="正在加载患者列表"></state-panel>
+  <state-panel wx:elif="{{error}}" type="error" title="患者列表加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
+  <state-panel wx:elif="{{!patients.length}}" type="empty" title="没有匹配的服务对象" description="请调整搜索词或状态筛选"></state-panel>
+
+  <view wx:else class="patient-list">
+    <view wx:for="{{patients}}" wx:key="id" class="patient-item card">
+      <button class="patient-item__main" data-id="{{item.id}}" bindtap="openMonitor">
+        <view class="patient-item__avatar">{{item.avatarText}}</view>
+        <view class="patient-item__content">
+          <view class="patient-item__headline">
+            <text class="patient-item__name text-ellipsis">{{item.displayName}}</text>
+            <status-tag type="{{item.status}}" text="{{item.statusText}}"></status-tag>
+          </view>
+          <view class="patient-item__meta text-ellipsis">{{item.room}} · {{item.bed}} · {{item.ageLabel}}</view>
+          <view class="patient-item__note line-clamp-2">{{item.note}}</view>
+          <view class="patient-item__update">{{item.updateLabel}}</view>
+        </view>
+      </button>
+      <view class="patient-item__actions">
+        <button data-id="{{item.id}}" bindtap="openMonitor">查看监控</button>
+        <button data-id="{{item.id}}" bindtap="addRecord">填写记录</button>
+      </view>
+    </view>
+
+    <button wx:if="{{hasMore}}" class="load-more" disabled="{{loadingMore}}" bindtap="loadMore">{{loadingMore ? '加载中' : '查看更多'}}</button>
+    <view wx:else class="list-end">已显示全部匹配结果</view>
+  </view>
+</view>
