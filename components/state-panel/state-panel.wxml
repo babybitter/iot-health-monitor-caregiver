@@ -1,0 +1,10 @@
+<view class="state-panel {{compact ? 'state-panel--compact' : ''}}">
+  <view class="state-panel__mark state-panel__mark--{{type}}">
+    <view wx:if="{{type === 'loading'}}" class="state-panel__spinner"></view>
+    <text wx:else>{{type === 'error' ? '!' : type === 'offline' ? '断' : '空'}}</text>
+  </view>
+  <view class="state-panel__title">{{title}}</view>
+  <view wx:if="{{description}}" class="state-panel__description">{{description}}</view>
+  <button wx:if="{{actionText}}" class="state-panel__action" bindtap="handleAction">{{actionText}}</button>
+</view>
+

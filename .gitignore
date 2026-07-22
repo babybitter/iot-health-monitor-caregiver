@@ -1,0 +1,33 @@
+# Dependencies and package manager output
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local configuration and secrets
+config/local.js
+.env
+.env.*.local
+*.key
+*.pem
+
+# Build and runtime output
+dist/
+build/
+.tmp/
+coverage/
+logs/
+*.log
+
+# WeChat DevTools local state
+project.private.config.json
+.wechat_devtools/
+
+# Editors and operating systems
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+

@@ -1,0 +1,5 @@
+<view class="status-tag status-tag--{{type}}">
+  <view wx:if="{{dot}}" class="status-tag__dot"></view>
+  <text class="status-tag__text">{{text}}</text>
+</view>
+

@@ -1,0 +1,59 @@
+.status-tag {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 8rpx;
+  padding: 7rpx 14rpx;
+  border-radius: 999rpx;
+  background: #eef1f5;
+  color: #5e6b7d;
+  font-size: 22rpx;
+  font-weight: 550;
+  line-height: 1.35;
+}
+
+.status-tag__dot {
+  width: 10rpx;
+  height: 10rpx;
+  flex: 0 0 10rpx;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-tag__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-tag--primary,
+.status-tag--processing {
+  background: #eaf2ff;
+  color: #1769e0;
+}
+
+.status-tag--normal,
+.status-tag--success,
+.status-tag--completed,
+.status-tag--valid {
+  background: #e7f7f0;
+  color: #16845b;
+}
+
+.status-tag--warning,
+.status-tag--pending,
+.status-tag--expiring {
+  background: #fff4df;
+  color: #a96309;
+}
+
+.status-tag--danger,
+.status-tag--error,
+.status-tag--expired,
+.status-tag--offline {
+  background: #fff0f1;
+  color: #c43a47;
+}
+

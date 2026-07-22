@@ -1,0 +1,10 @@
+{
+  "desc": "Caregiver mini program sitemap",
+  "rules": [
+    {
+      "action": "disallow",
+      "page": "*"
+    }
+  ]
+}
+
