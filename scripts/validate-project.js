@@ -45,6 +45,16 @@ if (appConfig) {
   }
 }
 
+const projectConfig = readJson(path.join(root, "project.config.json"));
+if (projectConfig) {
+  const packageIgnores = ((projectConfig.packOptions && projectConfig.packOptions.ignore) || [])
+    .filter(item => item && item.type === "folder")
+    .map(item => String(item.value || "").replace(/\\/g, "/").replace(/^\.\//, ""));
+  if (!packageIgnores.includes("page-images-check")) {
+    errors.push("project.config.json: 页面检查截图目录必须排除在小程序代码包之外");
+  }
+}
+
 allFiles.filter(file => file.endsWith(".json")).forEach(file => {
   const data = readJson(file);
   if (!data || !data.usingComponents) return;

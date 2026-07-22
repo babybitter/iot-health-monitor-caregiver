@@ -25,6 +25,10 @@
       {
         "type": "file",
         "value": "package-lock.json"
+      },
+      {
+        "type": "folder",
+        "value": "page-images-check"
       }
     ]
   },
@@ -44,4 +48,3 @@
     "tabSize": 2
   }
 }
-
