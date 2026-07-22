@@ -1,4 +1,4 @@
-const config = require("../config");
+const config = require("../config/index.js");
 const mock = require("../mocks/data");
 const request = require("./request");
 const storage = require("../utils/storage");

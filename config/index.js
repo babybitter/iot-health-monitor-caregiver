@@ -11,15 +11,10 @@ const defaults = {
   }
 };
 
-let local = {};
-try {
-  local = require("./local");
-} catch (error) {
-  local = {};
-}
-
-const config = Object.assign({}, defaults, local, {
-  mqtt: Object.assign({}, defaults.mqtt, local.mqtt || {})
+// 微信开发者工具会在打包期解析所有静态 require，不能引用一个可能不存在的
+// 本地配置文件。真实环境配置应由发布流程写入，凭据应由登录后的后端接口下发。
+const config = Object.assign({}, defaults, {
+  mqtt: Object.assign({}, defaults.mqtt)
 });
 
 config.thresholds = {

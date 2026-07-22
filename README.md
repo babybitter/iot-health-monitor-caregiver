@@ -71,14 +71,11 @@ npm run build
 
 ## 配置说明
 
-默认配置位于 `config/index.js`，其中 `dataMode` 为 `mock`。真实配置按以下方式接入：
+默认配置位于 `config/index.js`，其中 `dataMode` 为 `mock`。微信开发者工具会在打包期解析静态 `require`，因此项目不会引用一个可能缺失的本地配置模块。
 
-1. 复制 `config/local.example.js` 为 `config/local.js`。
-2. 设置 `dataMode: "remote"` 与真实 `apiBaseUrl`。
-3. 如需设备实时消息，设置 `mqtt.enabled: true`、WSS 地址和本地凭据。
-4. 不要提交 `config/local.js`；该文件已加入 `.gitignore`。
+接入真实环境时，由发布流程根据 `config/local.example.js` 的结构写入非敏感地址与模式配置。MQTT 用户名、密码和业务 Token 不应编译进小程序，应在用户登录后由受信任的后端接口下发并仅保存在运行时内存中。
 
-项目没有使用 `.env`，因为微信小程序运行时不会自动读取 Node.js 环境变量。配置示例不包含可用密钥。
+项目没有使用 `.env`，因为微信小程序运行时不会自动读取 Node.js 环境变量。仓库中的配置示例不包含可用密钥。
 
 ## 已实现功能
 
@@ -121,4 +118,3 @@ npm run build
 - 设备蜂鸣提醒只有在本地配置 MQTT 且连接成功后才会发送；模拟模式不会伪造发送成功。
 - 证书上传和在线考试未实现，页面只展示已有数据和安排。
 - 正式上传前需要配置护工端 AppID、服务器合法域名、登录换 Token 和后端权限控制。
-

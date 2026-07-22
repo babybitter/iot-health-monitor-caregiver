@@ -1,4 +1,4 @@
-const config = require("../config");
+const config = require("../config/index.js");
 
 const metricMeta = {
   heartRate: { label: "心率", unit: "次/分", precision: 0 },

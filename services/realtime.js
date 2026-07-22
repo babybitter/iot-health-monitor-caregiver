@@ -1,4 +1,4 @@
-const config = require("../config");
+const config = require("../config/index.js");
 
 const textBytes = text => {
   const encoded = unescape(encodeURIComponent(String(text)));
@@ -212,4 +212,3 @@ class RealtimeClient {
 }
 
 module.exports = new RealtimeClient();
-

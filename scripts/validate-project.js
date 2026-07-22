@@ -68,8 +68,9 @@ allFiles.filter(file => file.endsWith(".js") && !relative(file).startsWith("ec-c
   while ((match = requirePattern.exec(source))) {
     const target = path.resolve(path.dirname(file), match[1]);
     const candidates = [target, `${target}.js`, `${target}.json`, path.join(target, "index.js")];
-    const optionalLocalConfig = relative(file) === "config/index.js" && match[1] === "./local";
-    if (!optionalLocalConfig && !candidates.some(candidate => fs.existsSync(candidate))) {
+    if (fs.existsSync(target) && fs.statSync(target).isDirectory()) {
+      errors.push(`${relative(file)}: 微信小程序不支持目录 require，请显式引用 index.js - ${match[1]}`);
+    } else if (!candidates.some(candidate => fs.existsSync(candidate))) {
       errors.push(`${relative(file)}: require 引用不存在 - ${match[1]}`);
     }
   }

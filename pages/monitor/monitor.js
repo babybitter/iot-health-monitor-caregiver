@@ -1,7 +1,7 @@
 const repository = require("../../services/repository");
 const realtime = require("../../services/realtime");
 const workStore = require("../../store/work-store");
-const config = require("../../config");
+const config = require("../../config/index.js");
 const { formatMetric, statusText } = require("../../utils/health");
 const { formatDateTime, formatTime, minutesSince } = require("../../utils/date");
 

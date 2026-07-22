@@ -1,4 +1,4 @@
-const config = require("../config");
+const config = require("../config/index.js");
 const storage = require("../utils/storage");
 
 const request = (path, options) => {
@@ -51,4 +51,3 @@ module.exports = {
     return request(path, { method: "PUT", data });
   }
 };
-
