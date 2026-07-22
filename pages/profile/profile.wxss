@@ -18,18 +18,18 @@ page { background: #f1f4f8; }
 }
 
 .profile-box {
-  overflow: visible;
+  overflow: hidden;
   border-top-left-radius: 42rpx;
   border-top-right-radius: 42rpx;
 }
 
 .profile-head {
   display: flex;
-  min-height: 210rpx;
+  min-height: 250rpx;
   min-width: 0;
   align-items: center;
   justify-content: center;
-  padding: 70rpx 4rpx 24rpx;
+  padding: 30rpx 4rpx 28rpx;
   border-bottom: 1rpx solid #e7edf5;
   flex-direction: column;
 }
@@ -41,7 +41,7 @@ page { background: #f1f4f8; }
   flex: 0 0 140rpx;
   align-items: center;
   justify-content: center;
-  margin: -140rpx 0 0 !important;
+  margin: 0 !important;
   overflow: hidden;
   border: 6rpx solid #ffffff;
   border-radius: 50%;

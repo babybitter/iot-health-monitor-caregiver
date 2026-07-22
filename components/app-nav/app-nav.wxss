@@ -26,9 +26,9 @@
 
 .app-nav__back {
   display: flex;
-  width: 64rpx !important;
-  height: 64rpx;
-  flex: 0 0 64rpx;
+  width: 72rpx !important;
+  height: 72rpx;
+  flex: 0 0 72rpx;
   align-items: center;
   justify-content: center;
   border-radius: 16rpx;
@@ -38,13 +38,7 @@
   background: #edf3fb;
 }
 
-.app-nav__chevron {
-  width: 20rpx;
-  height: 20rpx;
-  border-bottom: 4rpx solid #182230;
-  border-left: 4rpx solid #182230;
-  transform: rotate(45deg);
-}
+.app-nav__back-icon { width: 40rpx; height: 40rpx; flex: 0 0 40rpx; }
 
 .app-nav__heading {
   min-width: 0;

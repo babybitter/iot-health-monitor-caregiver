@@ -2,7 +2,7 @@
 <view class="app-nav {{transparent ? 'app-nav--transparent' : ''}}" style="height: {{totalHeight}}px; padding-top: {{statusBarHeight}}px;">
   <view class="app-nav__content" style="height: {{contentHeight}}px; padding-left: {{back ? '16px' : '24rpx'}}; padding-right: {{rightInset}}px;">
     <button wx:if="{{back}}" class="app-nav__back" aria-label="返回" bindtap="goBack">
-      <view class="app-nav__chevron"></view>
+      <image class="app-nav__back-icon" src="/images/back.png" mode="aspectFit"></image>
     </button>
     <view class="app-nav__heading">
       <view class="app-nav__title text-ellipsis">{{title}}</view>
@@ -10,4 +10,3 @@
     </view>
   </view>
 </view>
-
