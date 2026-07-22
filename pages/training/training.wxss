@@ -1,6 +1,6 @@
 .training-page { padding-top: 20rpx; }
-.training-tabs { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 6rpx; border: 1rpx solid #dfe6ef; border-radius: 18rpx; background: #eaf0f7; }
-.training-tab { min-width: 0; padding: 15rpx; border-radius: 13rpx; color: #667386; font-size: 23rpx; text-align: center; }
+.training-tabs { display: flex; width: 100%; min-width: 0; padding: 6rpx; border: 1rpx solid #dfe6ef; border-radius: 18rpx; background: #eaf0f7; }
+.training-tab { width: 0 !important; min-width: 0; flex: 1 1 0; margin: 0 !important; padding: 15rpx; border-radius: 13rpx; color: #667386; font-size: 23rpx; text-align: center; }
 .training-tab--active { background: #ffffff; color: #0d4fae; font-weight: 650; box-shadow: 0 3rpx 12rpx rgba(31,58,91,.08); }
 .training-list { display: flex; width: 100%; min-width: 0; gap: 16rpx; margin-top: 18rpx; flex-direction: column; }
 .training-card { padding: 28rpx; }
@@ -9,4 +9,3 @@
 .training-card__title { margin-top: 20rpx; color: #182230; font-size: 29rpx; font-weight: 650; line-height: 1.45; word-break: break-word; }
 .training-card__meta { margin-top: 12rpx; color: #7c8799; font-size: 22rpx; line-height: 1.5; word-break: break-word; }
 .training-card__action { width: 100%; min-height: 72rpx; margin-top: 22rpx; font-size: 23rpx; }
-

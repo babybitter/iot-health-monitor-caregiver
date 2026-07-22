@@ -2,75 +2,35 @@
   padding-top: 20rpx;
 }
 
-.patient-selector {
-  padding: 28rpx;
+.monitor-source {
+  width: 100%;
+  padding: 26rpx;
 }
 
-.patient-selector__main {
+.monitor-source__main,
+.monitor-source__footer,
+.connection-state {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 20rpx;
 }
 
-.patient-selector__identity {
-  min-width: 0;
-  flex: 1;
-}
-
-.patient-selector__label {
-  color: #7c8799;
-  font-size: 21rpx;
-}
-
-.patient-selector__name {
-  margin-top: 6rpx;
-  color: #182230;
-  font-size: 34rpx;
-  font-weight: 700;
-}
-
-.patient-selector__meta {
-  margin-top: 8rpx;
-  color: #5e6b7d;
-  font-size: 23rpx;
-}
-
-.patient-selector__side {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.selector-chevron {
-  width: 16rpx;
-  height: 16rpx;
-  border-right: 3rpx solid #8a96a8;
-  border-bottom: 3rpx solid #8a96a8;
-  transform: rotate(45deg) translateY(-4rpx);
-}
-
-.patient-selector__footer {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18rpx;
-  margin-top: 24rpx;
-  padding-top: 20rpx;
-  border-top: 1rpx solid #edf1f5;
-  color: #8a96a8;
-  font-size: 21rpx;
-}
-
-.patient-selector__footer > text {
-  min-width: 0;
-  flex: 1;
-}
+.monitor-source__main { gap: 18rpx; }
+.monitor-source__identity { width: 0; min-width: 0; flex: 1 1 0; }
+.monitor-source__label { color: #7c8799; font-size: 21rpx; }
+.monitor-source__name { margin-top: 6rpx; color: #182230; font-size: 32rpx; font-weight: 700; }
+.monitor-source__meta { margin-top: 7rpx; color: #5e6b7d; font-size: 22rpx; }
+.monitor-source__footer { justify-content: space-between; gap: 14rpx; margin-top: 22rpx; padding-top: 18rpx; border-top: 1rpx solid #edf1f5; }
+.connection-state { width: 0; flex: 1 1 0; gap: 10rpx; color: #69778a; font-size: 21rpx; }
+.connection-state text { width: 0; flex: 1 1 0; }
+.connection-dot { width: 14rpx; height: 14rpx; flex: 0 0 14rpx; border-radius: 50%; background: #a4afbd; }
+.connection-dot--online { background: #16845b; box-shadow: 0 0 0 6rpx rgba(22,132,91,.10); }
+.monitor-source__updated { margin-top: 14rpx; color: #8a96a8; font-size: 20rpx; }
 
 .refresh-button {
+  width: auto !important;
   flex: 0 0 auto;
+  margin: 0 !important;
   padding: 10rpx 20rpx;
   border-radius: 12rpx;
   background: #eaf2ff;
@@ -120,7 +80,9 @@
 }
 
 .monitor-alert__action {
+  width: auto !important;
   flex: 0 0 auto;
+  margin: 0 !important;
   padding: 14rpx 18rpx;
   border-radius: 12rpx;
   background: #ffffff;
@@ -130,10 +92,9 @@
 }
 
 .monitor-tabs {
-  display: grid;
+  display: flex;
   width: 100%;
   min-width: 0;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 22rpx;
   padding: 6rpx;
   border: 1rpx solid #dfe6ef;
@@ -142,7 +103,10 @@
 }
 
 .monitor-tab {
+  width: 0 !important;
   min-width: 0;
+  flex: 1 1 0;
+  margin: 0 !important;
   padding: 15rpx 8rpx;
   border-radius: 13rpx;
   color: #667386;
@@ -250,6 +214,8 @@
 }
 
 .care-note__button {
+  width: auto !important;
+  margin: 0 !important;
   min-height: 68rpx;
   flex: 0 0 auto;
   padding: 14rpx 20rpx;
@@ -351,13 +317,14 @@
 .infusion-stat__unit { color: #7c8799; font-size: 20rpx; font-weight: 400; }
 
 .infusion-actions {
-  display: grid;
+  display: flex;
   width: 100%;
   min-width: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16rpx;
   margin-top: 28rpx;
 }
+
+.infusion-actions button { width: 0 !important; min-width: 0; flex: 1 1 0; margin: 0 !important; }
 
 .inline-empty {
   margin-top: 18rpx;
@@ -380,7 +347,9 @@
 }
 
 .metric-option {
+  width: auto !important;
   flex: 0 0 auto;
+  margin: 0 !important;
   padding: 13rpx 22rpx;
   border: 1rpx solid #dfe6ef;
   border-radius: 999rpx;
@@ -397,6 +366,8 @@
 
 .trend-card { margin-top: 18rpx; padding: 26rpx; }
 
+.heading-main { width: 0; min-width: 0; flex: 1 1 0; }
+
 .range-switch {
   display: flex;
   flex: 0 0 auto;
@@ -407,6 +378,8 @@
 }
 
 .range-option {
+  width: auto !important;
+  margin: 0 !important;
   padding: 9rpx 12rpx;
   border-radius: 9rpx;
   color: #6c7889;
@@ -498,10 +471,9 @@ ec-canvas { width: 100%; height: 100%; }
 .control-row switch { flex: 0 0 auto; transform: scale(.82); transform-origin: right center; }
 
 @media (max-width: 360px) {
-  .patient-selector__side { gap: 8rpx; }
   .monitor-tab { font-size: 21rpx; }
   .care-note { align-items: stretch; flex-direction: column; }
-  .care-note__button { width: 100%; }
+  .care-note__button { width: 100% !important; }
   .trend-card__header { align-items: stretch; flex-direction: column; }
   .range-switch { align-self: flex-start; }
 }

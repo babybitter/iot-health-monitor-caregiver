@@ -1,3 +1,10 @@
+:host {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
 .status-tag {
   display: inline-flex;
   max-width: 100%;
@@ -56,4 +63,3 @@
   background: #fff0f1;
   color: #c43a47;
 }
-

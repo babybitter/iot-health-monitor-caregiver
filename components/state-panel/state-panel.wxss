@@ -1,3 +1,9 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
 .state-panel {
   display: flex;
   width: 100%;
@@ -59,7 +65,8 @@
 }
 
 .state-panel__action {
-  margin-top: 24rpx;
+  width: auto !important;
+  margin: 24rpx 0 0 !important;
   padding: 14rpx 28rpx;
   border: 1rpx solid #a9c8f5;
   border-radius: 14rpx;
@@ -72,4 +79,3 @@
 @keyframes state-spin {
   to { transform: rotate(360deg); }
 }
-

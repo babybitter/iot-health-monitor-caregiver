@@ -16,7 +16,7 @@
   font-size: 24rpx;
 }
 
-.records-add { min-height: 80rpx; flex: 0 0 auto; padding: 16rpx 24rpx; font-size: 24rpx; }
+.records-add { width: auto !important; min-height: 80rpx; flex: 0 0 auto; margin: 0 !important; padding: 16rpx 24rpx; font-size: 24rpx; }
 .records-total { margin: 22rpx 4rpx 14rpx; color: #7c8799; font-size: 22rpx; }
 .record-list { display: flex; width: 100%; min-width: 0; gap: 16rpx; flex-direction: column; }
 .record-card { padding: 26rpx; }
@@ -29,7 +29,7 @@
 .record-card__result text:first-child { flex: 0 0 auto; color: #7c8799; }
 .record-card__result text:last-child { min-width: 0; flex: 1; color: #273444; text-align: right; word-break: break-word; }
 .record-card__author { margin-top: 16rpx; color: #9aa5b4; font-size: 20rpx; text-align: right; }
-.load-more { min-height: 76rpx; border: 1rpx solid #c9d9ed; border-radius: 16rpx; background: #edf4fd; color: #0d4fae; font-size: 24rpx; font-weight: 600; }
+.load-more { width: 100% !important; min-height: 76rpx; margin: 0 !important; border: 1rpx solid #c9d9ed; border-radius: 16rpx; background: #edf4fd; color: #0d4fae; font-size: 24rpx; font-weight: 600; }
 .list-end { padding: 20rpx; color: #9aa5b4; font-size: 21rpx; text-align: center; }
 
 @media (max-width: 360px) {
@@ -37,4 +37,3 @@
   .records-picker { flex-basis: 100%; }
   .records-add { width: 100%; }
 }
-

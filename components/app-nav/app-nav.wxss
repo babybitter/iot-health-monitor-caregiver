@@ -26,7 +26,7 @@
 
 .app-nav__back {
   display: flex;
-  width: 64rpx;
+  width: 64rpx !important;
   height: 64rpx;
   flex: 0 0 64rpx;
   align-items: center;
@@ -64,4 +64,3 @@
   font-size: 20rpx;
   line-height: 1.25;
 }
-

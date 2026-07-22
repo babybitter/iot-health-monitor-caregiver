@@ -46,9 +46,11 @@
 .form-count { margin-top: 9rpx; color: #9aa5b4; font-size: 20rpx; text-align: right; }
 .form-error { margin: 18rpx 0; padding: 16rpx 18rpx; border-radius: 12rpx; background: #fff0f1; color: #c43a47; font-size: 22rpx; line-height: 1.5; }
 
-.form-actions { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16rpx; margin-top: 22rpx; }
+.form-picker--readonly { color: #5e6b7d; }
+.form-actions { display: flex; width: 100%; min-width: 0; gap: 16rpx; margin-top: 22rpx; }
+.form-actions button { width: 0 !important; min-width: 0; flex: 1 1 0; margin: 0 !important; }
 
 @media (max-width: 360px) {
-  .form-actions { grid-template-columns: minmax(0, 1fr); }
+  .form-actions { flex-direction: column; }
+  .form-actions button { width: 100% !important; }
 }
-

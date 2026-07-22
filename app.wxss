@@ -20,6 +20,7 @@ image {
 }
 
 button {
+  max-width: 100%;
   margin: 0;
   padding: 0;
   line-height: inherit;
@@ -72,7 +73,9 @@ button::after {
 }
 
 .section-action {
+  width: auto !important;
   flex: 0 0 auto;
+  margin: 0 !important;
   color: var(--color-primary);
   font-size: 24rpx;
   line-height: 1.4;
@@ -134,4 +137,3 @@ button::after {
 .safe-bottom {
   height: env(safe-area-inset-bottom);
 }
-
