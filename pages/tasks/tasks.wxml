@@ -1,0 +1,35 @@
+<app-nav title="今日任务" subtitle="按状态分组处理"></app-nav>
+
+<view class="page-shell page-shell--tab task-page">
+  <view class="task-filters">
+    <button wx:for="{{filters}}" wx:key="key" class="task-filter {{activeStatus === item.key ? 'task-filter--active' : ''}}" data-key="{{item.key}}" bindtap="selectFilter">{{item.label}}</button>
+  </view>
+
+  <view class="task-total">共 {{total}} 项任务</view>
+
+  <state-panel wx:if="{{loading}}" type="loading" title="正在加载任务"></state-panel>
+  <state-panel wx:elif="{{error}}" type="error" title="任务加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
+  <state-panel wx:elif="{{!tasks.length}}" type="empty" title="当前分组没有任务" description="可切换状态查看其他任务"></state-panel>
+
+  <view wx:else class="task-cards">
+    <button wx:for="{{tasks}}" wx:key="id" class="task-card card" data-id="{{item.id}}" bindtap="openTask">
+      <view class="task-card__top">
+        <view class="task-card__time">{{item.scheduledTime}}</view>
+        <view class="task-card__content">
+          <view class="task-card__title line-clamp-2">{{item.title}}</view>
+          <view class="task-card__location text-ellipsis">{{item.location}}</view>
+        </view>
+        <status-tag type="{{item.status}}" text="{{item.statusText}}" dot="{{false}}"></status-tag>
+      </view>
+      <view class="task-card__note line-clamp-2">{{item.note}}</view>
+      <view class="task-card__footer">
+        <status-tag type="{{item.priorityType}}" text="{{item.priorityText}}"></status-tag>
+        <view class="task-card__detail">查看详情<view class="task-card__chevron"></view></view>
+      </view>
+    </button>
+
+    <button wx:if="{{hasMore}}" class="load-more" disabled="{{loadingMore}}" bindtap="loadMore">{{loadingMore ? '加载中' : '查看更多'}}</button>
+    <view wx:else class="list-end">已显示当前分组全部任务</view>
+  </view>
+</view>
+

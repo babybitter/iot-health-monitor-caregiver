@@ -1,0 +1,148 @@
+.task-page { padding-top: 20rpx; }
+
+.task-filters {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 6rpx;
+  border: 1rpx solid #dfe6ef;
+  border-radius: 18rpx;
+  background: #eaf0f7;
+}
+
+.task-filter {
+  min-width: 0;
+  padding: 15rpx 8rpx;
+  border-radius: 13rpx;
+  color: #667386;
+  font-size: 23rpx;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.task-filter--active {
+  background: #ffffff;
+  color: #0d4fae;
+  font-weight: 650;
+  box-shadow: 0 3rpx 12rpx rgba(31, 58, 91, 0.08);
+}
+
+.task-total {
+  margin: 22rpx 4rpx 14rpx;
+  color: #7c8799;
+  font-size: 22rpx;
+}
+
+.task-cards {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  gap: 16rpx;
+  flex-direction: column;
+}
+
+.task-card {
+  display: block;
+  padding: 26rpx;
+  text-align: left;
+}
+
+.task-card__top {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 18rpx;
+}
+
+.task-card__time {
+  width: 78rpx;
+  flex: 0 0 78rpx;
+  padding-top: 2rpx;
+  color: #0d4fae;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.task-card__content {
+  min-width: 0;
+  flex: 1;
+}
+
+.task-card__title {
+  color: #182230;
+  font-size: 29rpx;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.task-card__location {
+  margin-top: 8rpx;
+  color: #7c8799;
+  font-size: 22rpx;
+}
+
+.task-card__note {
+  margin-top: 20rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 14rpx;
+  background: #f6f8fb;
+  color: #5e6b7d;
+  font-size: 23rpx;
+  line-height: 1.55;
+}
+
+.task-card__footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-top: 22rpx;
+}
+
+.task-card__detail {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10rpx;
+  color: #1769e0;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.task-card__chevron {
+  width: 12rpx;
+  height: 12rpx;
+  border-top: 3rpx solid #1769e0;
+  border-right: 3rpx solid #1769e0;
+  transform: rotate(45deg);
+}
+
+.load-more {
+  display: flex;
+  width: 100%;
+  min-height: 76rpx;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid #c9d9ed;
+  border-radius: 16rpx;
+  background: #edf4fd;
+  color: #0d4fae;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.list-end {
+  padding: 20rpx;
+  color: #9aa5b4;
+  font-size: 21rpx;
+  text-align: center;
+}
+
+@media (max-width: 360px) {
+  .task-filter { font-size: 21rpx; }
+  .task-card__top { flex-wrap: wrap; }
+  .task-card__top status-tag { margin-left: 96rpx; }
+}
+

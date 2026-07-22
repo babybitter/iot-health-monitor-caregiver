@@ -1,0 +1,48 @@
+<app-nav title="任务详情" back="{{true}}"></app-nav>
+
+<view class="page-shell detail-page">
+  <state-panel wx:if="{{loading}}" type="loading" title="正在加载任务"></state-panel>
+  <state-panel wx:elif="{{error}}" type="error" title="任务加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
+
+  <block wx:elif="{{task}}">
+    <view class="task-hero card">
+      <view class="task-hero__status">
+        <status-tag type="{{task.status}}" text="{{task.statusText}}"></status-tag>
+        <status-tag type="{{task.priorityType}}" text="{{task.priorityText}}"></status-tag>
+      </view>
+      <view class="task-hero__title">{{task.title}}</view>
+      <view class="task-hero__time">计划时间 {{task.scheduledTime}}</view>
+    </view>
+
+    <view class="detail-card card">
+      <view class="detail-row">
+        <text class="detail-row__label">服务对象</text>
+        <button class="detail-row__link text-ellipsis" bindtap="openPatientMonitor">{{task.patient.displayName}} · {{task.patient.bed}}</button>
+      </view>
+      <view class="detail-row">
+        <text class="detail-row__label">执行位置</text>
+        <text class="detail-row__value">{{task.location}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-row__label">任务类别</text>
+        <text class="detail-row__value">{{task.category}}</text>
+      </view>
+      <view class="detail-row detail-row--block">
+        <text class="detail-row__label">执行要求</text>
+        <text class="detail-row__value">{{task.note}}</text>
+      </view>
+      <view wx:if="{{task.completedTime}}" class="detail-row">
+        <text class="detail-row__label">完成时间</text>
+        <text class="detail-row__value">{{task.completedTime}}</text>
+      </view>
+    </view>
+
+    <view class="detail-actions">
+      <button wx:if="{{task.status === 'pending'}}" class="primary-button" disabled="{{submitting}}" bindtap="startTask">{{submitting ? '处理中' : '开始任务'}}</button>
+      <button wx:elif="{{task.status === 'processing'}}" class="primary-button" disabled="{{submitting}}" bindtap="completeTask">{{submitting ? '处理中' : '完成任务'}}</button>
+      <button wx:else class="secondary-button" bindtap="addRecord">补充照护记录</button>
+      <button wx:if="{{task.status !== 'completed'}}" class="secondary-button" bindtap="addRecord">填写照护记录</button>
+    </view>
+  </block>
+</view>
+

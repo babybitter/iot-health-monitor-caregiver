@@ -1,0 +1,39 @@
+<app-nav title="考勤记录" subtitle="当前班次与历史记录" back="{{true}}"></app-nav>
+
+<view class="page-shell attendance-page">
+  <state-panel wx:if="{{loading}}" type="loading" title="正在加载考勤记录"></state-panel>
+  <state-panel wx:elif="{{error}}" type="error" title="考勤记录加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
+
+  <block wx:else>
+    <view class="shift-card card">
+      <view class="shift-card__top">
+        <view>
+          <view class="shift-card__label">当前班次</view>
+          <view class="shift-card__name">{{caregiver.shift.name}} {{caregiver.shift.startTime}}-{{caregiver.shift.endTime}}</view>
+          <view class="shift-card__area line-clamp-2">{{caregiver.shift.date}} · {{caregiver.shift.area}}</view>
+        </view>
+        <status-tag type="{{attendance.status === 'checked_in' ? 'success' : attendance.status === 'checked_out' ? 'neutral' : 'warning'}}" text="{{attendance.status === 'checked_in' ? '值班中' : attendance.status === 'checked_out' ? '已签退' : '待签到'}}"></status-tag>
+      </view>
+      <view class="shift-times">
+        <view><text>签到</text><text>{{attendance.checkInTime || '--'}}</text></view>
+        <view><text>签退</text><text>{{attendance.checkOutTime || '--'}}</text></view>
+      </view>
+      <button class="primary-button shift-action" disabled="{{submitting || attendance.status === 'checked_out'}}" bindtap="handleClock">{{submitting ? '处理中' : attendance.status === 'checked_in' ? '签退' : attendance.status === 'checked_out' ? '本班次已结束' : '签到'}}</button>
+      <view class="location-note">当前版本不采集定位信息；后续接入考勤接口时可按机构要求启用校验。</view>
+    </view>
+
+    <view class="section-heading"><view class="section-title">近期记录</view></view>
+    <view wx:if="{{logs.length}}" class="attendance-list card">
+      <view wx:for="{{logs}}" wx:key="id" class="attendance-row">
+        <view class="attendance-row__date">{{item.date}}</view>
+        <view class="attendance-row__content">
+          <view class="attendance-row__shift text-ellipsis">{{item.shift}}</view>
+          <view class="attendance-row__time">{{item.checkInTime}} 签到 · {{item.checkOutTime}} 签退</view>
+        </view>
+        <status-tag type="{{item.result === 'normal' ? 'success' : 'warning'}}" text="{{item.result === 'normal' ? '正常' : '迟到'}}" dot="{{false}}"></status-tag>
+      </view>
+    </view>
+    <state-panel wx:else type="empty" compact="{{true}}" title="暂无历史考勤"></state-panel>
+  </block>
+</view>
+

@@ -1,0 +1,27 @@
+.attendance-page { padding-top: 24rpx; }
+.shift-card { padding: 30rpx; border-color: #cfe0f5; background: linear-gradient(145deg, #ffffff, #f0f6ff); }
+.shift-card__top { display: flex; min-width: 0; align-items: flex-start; justify-content: space-between; gap: 18rpx; }
+.shift-card__label { color: #7c8799; font-size: 21rpx; }
+.shift-card__name { margin-top: 7rpx; color: #182230; font-size: 32rpx; font-weight: 680; }
+.shift-card__area { margin-top: 8rpx; color: #5e6b7d; font-size: 23rpx; line-height: 1.45; }
+.shift-times { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16rpx; margin-top: 26rpx; }
+.shift-times > view { min-width: 0; padding: 20rpx; border-radius: 16rpx; background: rgba(255,255,255,.78); }
+.shift-times text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shift-times text:first-child { color: #7c8799; font-size: 21rpx; }
+.shift-times text:last-child { margin-top: 8rpx; color: #273444; font-size: 28rpx; font-weight: 650; }
+.shift-action { width: 100%; margin-top: 20rpx; }
+.location-note { margin-top: 14rpx; color: #8a96a8; font-size: 20rpx; line-height: 1.5; word-break: break-word; }
+.attendance-list { padding: 0 26rpx; }
+.attendance-row { display: flex; width: 100%; min-width: 0; align-items: center; gap: 18rpx; padding: 24rpx 0; border-bottom: 1rpx solid #edf1f5; }
+.attendance-row:last-child { border-bottom: 0; }
+.attendance-row__date { width: 126rpx; flex: 0 0 126rpx; color: #0d4fae; font-size: 23rpx; font-weight: 600; }
+.attendance-row__content { min-width: 0; flex: 1; }
+.attendance-row__shift { color: #273444; font-size: 24rpx; font-weight: 600; }
+.attendance-row__time { margin-top: 7rpx; color: #8a96a8; font-size: 20rpx; line-height: 1.4; }
+
+@media (max-width: 360px) {
+  .attendance-row { align-items: flex-start; flex-wrap: wrap; }
+  .attendance-row__content { flex-basis: calc(100% - 150rpx); }
+  .attendance-row status-tag { margin-left: 144rpx; }
+}
+

@@ -2,7 +2,10 @@
   "pages": [
     "pages/workbench/workbench",
     "pages/monitor/monitor",
-    "pages/patients/patients"
+    "pages/tasks/tasks",
+    "pages/patients/patients",
+    "pages/task-detail/task-detail",
+    "pages/attendance/attendance"
   ],
   "window": {
     "navigationStyle": "custom",
@@ -26,6 +29,10 @@
       {
         "pagePath": "pages/monitor/monitor",
         "text": "智能监控"
+      },
+      {
+        "pagePath": "pages/tasks/tasks",
+        "text": "任务"
       }
     ]
   },
