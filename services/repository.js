@@ -7,6 +7,7 @@ const KEYS = {
   caregiver: "caregiver_profile",
   attendance: "caregiver_attendance",
   tasks: "caregiver_tasks",
+  taskDemoVersion: "caregiver_task_demo_version",
   records: "caregiver_records"
 };
 
@@ -14,7 +15,16 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const resolved = value => Promise.resolve(clone(value));
 const today = () => new Date().toISOString().slice(0, 10);
 const currentTime = () => new Date().toTimeString().slice(0, 5);
-const getTaskState = () => storage.read(KEYS.tasks, clone(demoBusiness.createTasks(config.careSubject.id)));
+const TASK_DEMO_VERSION = "2026-07-single-device-v1";
+const getTaskState = () => {
+  const defaults = clone(demoBusiness.createTasks(config.careSubject.id));
+  if (storage.read(KEYS.taskDemoVersion, "") !== TASK_DEMO_VERSION) {
+    storage.write(KEYS.tasks, defaults);
+    storage.write(KEYS.taskDemoVersion, TASK_DEMO_VERSION);
+    return defaults;
+  }
+  return storage.read(KEYS.tasks, defaults);
+};
 
 const defaultCaregiver = {
   name: "护工用户",
