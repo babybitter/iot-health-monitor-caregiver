@@ -8,6 +8,7 @@ global.wx = {
 };
 
 const config = require("../config/index.js");
+const demoBusiness = require("../mocks/demo-business-data.js");
 const { evaluateMetric, formatMetric } = require("../utils/health");
 const workStore = require("../store/work-store");
 const repository = require("../services/repository");
@@ -75,7 +76,16 @@ const run = async () => {
   assert.strictEqual(subjectPage.rows.length, 1);
   assert.strictEqual(subjectPage.rows[0].id, config.careSubject.id);
   const tasks = await repository.listTasks({ status: "all", page: 1, pageSize: 6 });
-  assert.strictEqual(tasks.total, 0);
+  assert.strictEqual(tasks.total, 8);
+  assert.strictEqual(tasks.rows.length, 6);
+  const updatedTask = await repository.updateTask("DEMO-TASK-003", "processing");
+  assert.strictEqual(updatedTask.status, "processing");
+  const taskDetail = await repository.getTask("DEMO-TASK-003");
+  assert.strictEqual(taskDetail.patient.id, config.careSubject.id);
+  assert.strictEqual((await repository.listCertificates()).length, 3);
+  assert.strictEqual((await repository.listTraining()).length, 5);
+  assert.deepStrictEqual(Object.keys(demoBusiness).sort(), ["certificates", "createTasks", "training"]);
+  assert.ok(!/(heartRate|bloodOxygen|infusionSpeed|deviceStatus)/.test(JSON.stringify(demoBusiness)));
 
   const checkedIn = await repository.clock("check_in");
   assert.strictEqual(checkedIn.status, "checked_in");
@@ -95,7 +105,7 @@ const run = async () => {
   });
   assert.strictEqual(record.patientId, config.careSubject.id);
 
-  console.log("Core logic tests passed: thresholds, MQTT topics, live mapping, infusion, device feedback, trends, attendance and records.");
+  console.log("Core logic tests passed: MQTT live data, isolated business demos, tasks, attendance and records.");
 };
 
 run().catch(error => {

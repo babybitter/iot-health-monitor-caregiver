@@ -1,4 +1,5 @@
 const config = require("../config/index.js");
+const demoBusiness = require("../mocks/demo-business-data.js");
 const workStore = require("../store/work-store");
 const storage = require("../utils/storage");
 
@@ -13,6 +14,7 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const resolved = value => Promise.resolve(clone(value));
 const today = () => new Date().toISOString().slice(0, 10);
 const currentTime = () => new Date().toTimeString().slice(0, 5);
+const getTaskState = () => storage.read(KEYS.tasks, clone(demoBusiness.createTasks(config.careSubject.id)));
 
 const defaultCaregiver = {
   name: "护工用户",
@@ -95,7 +97,7 @@ const repository = {
   async getDashboard() {
     const caregiver = this.getCaregiverProfile();
     const attendance = getAttendanceState();
-    const taskList = storage.read(KEYS.tasks, []);
+    const taskList = getTaskState();
     const subject = currentSubject();
     const alerts = workStore.getState().monitor.alerts.map(item => Object.assign({}, item, { patientId: subject.id }));
     return {
@@ -150,21 +152,21 @@ const repository = {
 
   async listTasks(options) {
     const settings = options || {};
-    let rows = storage.read(KEYS.tasks, []).slice();
+    let rows = getTaskState().slice();
     if (settings.status && settings.status !== "all") rows = rows.filter(item => item.status === settings.status);
     rows.sort((left, right) => String(left.scheduledTime || "").localeCompare(String(right.scheduledTime || "")));
     return resolved(paginate(rows, settings));
   },
 
   async getTask(taskId) {
-    const task = storage.read(KEYS.tasks, []).find(item => item.id === taskId);
+    const task = getTaskState().find(item => item.id === taskId);
     if (!task) throw new Error("任务不存在或尚未从业务系统同步");
     return clone(Object.assign({}, task, { patient: currentSubject() }));
   },
 
   async updateTask(taskId, status) {
     if (!["pending", "processing", "completed"].includes(status)) throw new Error("任务状态无效");
-    const rows = storage.read(KEYS.tasks, []);
+    const rows = getTaskState();
     const index = rows.findIndex(item => item.id === taskId);
     if (index < 0) throw new Error("任务不存在或尚未从业务系统同步");
     rows[index] = Object.assign({}, rows[index], {
@@ -231,11 +233,11 @@ const repository = {
   },
 
   async listCertificates() {
-    return [];
+    return clone(demoBusiness.certificates);
   },
 
   async listTraining() {
-    return [];
+    return clone(demoBusiness.training);
   }
 };
 

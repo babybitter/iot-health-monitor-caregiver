@@ -1,5 +1,7 @@
 .task-page { padding-top: 20rpx; }
 
+.demo-notice { margin-bottom: 16rpx; padding: 16rpx 18rpx; border: 1rpx solid #cbdcf1; border-radius: 14rpx; background: #edf4fd; color: #4c6582; font-size: 21rpx; line-height: 1.5; }
+
 .task-filters {
   display: flex;
   width: 100%;

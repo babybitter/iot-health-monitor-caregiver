@@ -1,6 +1,7 @@
 <app-nav title="培训与考核" subtitle="安排与历史结果" back="{{true}}"></app-nav>
 
 <view class="page-shell training-page">
+  <view class="training-notice">当前为演示培训与考核安排，不代表真实机构通知。</view>
   <view class="training-tabs">
     <button class="training-tab {{activeStatus === 'pending' ? 'training-tab--active' : ''}}" data-status="pending" bindtap="selectStatus">待完成</button>
     <button class="training-tab {{activeStatus === 'completed' ? 'training-tab--active' : ''}}" data-status="completed" bindtap="selectStatus">历史结果</button>
@@ -23,4 +24,3 @@
     </view>
   </view>
 </view>
-

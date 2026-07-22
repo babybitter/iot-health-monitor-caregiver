@@ -1,6 +1,7 @@
 <app-nav title="今日任务" subtitle="按状态分组处理"></app-nav>
 
 <view class="page-shell page-shell--tab task-page">
+  <view class="demo-notice">当前任务为业务接口接入前的演示内容，可体验开始、完成和记录流程。</view>
   <view class="task-filters">
     <button wx:for="{{filters}}" wx:key="key" class="task-filter {{activeStatus === item.key ? 'task-filter--active' : ''}}" data-key="{{item.key}}" bindtap="selectFilter">{{item.label}}</button>
   </view>

@@ -1,7 +1,7 @@
 <app-nav title="资质证书" subtitle="仅展示证书摘要" back="{{true}}"></app-nav>
 
 <view class="page-shell certificate-page">
-  <view class="certificate-notice">证书信息用于在岗资格提醒；当前版本暂不提供上传与变更。</view>
+  <view class="certificate-notice">当前为演示证书，仅用于展示有效期和临期提醒；暂不提供上传与变更。</view>
   <state-panel wx:if="{{loading}}" type="loading" title="正在加载证书信息"></state-panel>
   <state-panel wx:elif="{{error}}" type="error" title="证书信息加载失败" description="{{error}}" action-text="重新加载" bind:action="retryLoad"></state-panel>
   <state-panel wx:elif="{{!certificates.length}}" type="empty" title="暂无证书信息"></state-panel>
@@ -18,4 +18,3 @@
     </view>
   </view>
 </view>
-

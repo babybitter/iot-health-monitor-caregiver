@@ -1,4 +1,5 @@
 .training-page { padding-top: 20rpx; }
+.training-notice { margin-bottom: 16rpx; padding: 16rpx 18rpx; border: 1rpx solid #cbdcf1; border-radius: 14rpx; background: #edf4fd; color: #4c6582; font-size: 21rpx; line-height: 1.5; }
 .training-tabs { display: flex; width: 100%; min-width: 0; padding: 6rpx; border: 1rpx solid #dfe6ef; border-radius: 18rpx; background: #eaf0f7; }
 .training-tab { width: 0 !important; min-width: 0; flex: 1 1 0; margin: 0 !important; padding: 15rpx; border-radius: 13rpx; color: #667386; font-size: 23rpx; text-align: center; }
 .training-tab--active { background: #ffffff; color: #0d4fae; font-weight: 650; box-shadow: 0 3rpx 12rpx rgba(31,58,91,.08); }
